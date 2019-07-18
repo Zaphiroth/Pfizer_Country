@@ -63,8 +63,8 @@ server <- function(input, output, session) {
       
       # summary table
       data <- summary() %>%
-        filter(year == input$year, 
-               market == input$mkt,
+        filter(year %in% input$year, 
+               market %in% input$mkt,
                province %in% input$province) %>%
         select(省份 = province, 城市级别 = `city.tier`, 地级市数量 = `地级市by.tier`, 
                  市辖县数量 = `县by.tier`, 县级市数量 = `县级市by.tier`) %>%
@@ -90,8 +90,8 @@ server <- function(input, output, session) {
     
       # summary table1
       data3 <- summary() %>%
-        filter(year == input$year, 
-               market == input$mkt,
+        filter(year %in% input$year, 
+               market %in% input$mkt,
                province %in% input$province) %>%
         select(省份 = province, 三级医院 = `三级.by.province`, 
                  二级医院 = `二级.by.province`, 
@@ -102,104 +102,456 @@ server <- function(input, output, session) {
                       二级医院 = sum(二级医院, na.rm = TRUE),
                       一级及以下 = sum(一级及以下, na.rm = TRUE))
       
+      # summary table2
+      data4 <- summary() %>% 
+        filter(year %in% input$year, 
+               market %in% input$mkt,
+               province %in% input$province) %>% 
+        select(`省份` = province,
+               `县医院#` = county.hp.by.province,
+               `城市医院#` = city.hp.by.province) %>% 
+        distinct() %>% 
+        ungroup() %>% 
+        summarise(`县医院#` = sum(`县医院#`, na.rm = TRUE),
+                  `城市医院#` = sum(`城市医院#`, na.rm = TRUE))
+      
+      
       list(summary_table = all_data_m,
-           summary_table1 = data3)
+           summary_table1 = data3,
+           summary_table2 = data4)
     })
   
   output$summary_table <- renderDT({
-    if (is.null(input$summary)) return(NULL)
+    if (is.null(summary_data())) return(NULL)
     input$goButton
     isolate({
-      DT::datatable(summary_data()$summary_table,
-                    rownames = FALSE,
-                    # extensions = c('FixedColumns', 'Buttons'),
-                    #filter = 'bottom',
-                    ##### this sentence need to be changed when new variables added
-                    options = list(
-                      # dom = '<"bottom">Bfrtpl',
-                      # buttons = I('colvis'),
-                      columnDefs = list(list(
-                        className = 'dt-center', targets = c(0, 1, 2, 3)
-                      )),
-                      initComplete = JS(
-                        "function(settings, json) {",
-                        "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
-                        "}"
-                      ),
-                      paging = FALSE,
-                      scrollX = FALSE,
-                      searching = FALSE,
-                      ordering = FALSE,
-                      pageLength = 5,
-                      lengthChange = FALSE,
-                      bInfo = FALSE
-                      )
-                    )
-      })
+      DT::datatable(
+        summary_data()$summary_table,
+        rownames = FALSE,
+        # extensions = c('FixedColumns', 'Buttons'),
+        #filter = 'bottom',
+        ##### this sentence need to be changed when new variables added
+        options = list(
+          # dom = '<"bottom">Bfrtpl',
+          # buttons = I('colvis'),
+          columnDefs = list(list(
+            className = 'dt-center', targets = c(0, 1, 2, 3)
+          )),
+          initComplete = JS(
+            "function(settings, json) {",
+            "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+            "}"
+          ),
+          paging = FALSE,
+          scrollX = FALSE,
+          searching = FALSE,
+          ordering = FALSE,
+          pageLength = 5,
+          lengthChange = FALSE,
+          bInfo = FALSE
+        )
+      )
     })
+  })
   output$summary_table1 <- renderDT({
-    if (is.null(input$summary)) return(NULL)
+    if (is.null(summary_data())) return(NULL)
     input$goButton
     isolate({
-      DT::datatable(summary_data()$summary_table1,
-                    rownames = FALSE,
-                    # extensions = c('FixedColumns', 'Buttons'),
-                    #filter = 'bottom',
-                    ##### this sentence need to be changed when new variables added
-                    options = list(
-                      # dom = '<"bottom">Bfrtpl',
-                      # buttons = I('colvis'),
-                      columnDefs = list(list(
-                        className = 'dt-center', targets = c(0, 1, 2)
-                      )),
-                      initComplete = JS(
-                        "function(settings, json) {",
-                        "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
-                        "}"
-                      ),
-                      paging = FALSE,
-                      scrollX = FALSE,
-                      searching = FALSE,
-                      ordering = FALSE,
-                      pageLength = 5,
-                      lengthChange = FALSE,
-                      bInfo = FALSE
-                    )
+      DT::datatable(
+        summary_data()$summary_table1,
+        rownames = FALSE,
+        # extensions = c('FixedColumns', 'Buttons'),
+        #filter = 'bottom',
+        ##### this sentence need to be changed when new variables added
+        options = list(
+          # dom = '<"bottom">Bfrtpl',
+          # buttons = I('colvis'),
+          columnDefs = list(list(
+            className = 'dt-center', targets = c(0, 1, 2)
+          )),
+          initComplete = JS(
+            "function(settings, json) {",
+            "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+            "}"
+          ),
+          paging = FALSE,
+          scrollX = FALSE,
+          searching = FALSE,
+          ordering = FALSE,
+          pageLength = 5,
+          lengthChange = FALSE,
+          bInfo = FALSE
+        )
       )
     })
   })
   
-  output$summary_table1 <- renderDT({
-    if (is.null(input$summary)) return(NULL)
+  output$summary_table2 <- renderDT({
+    if (is.null(summary_data())) return(NULL)
     input$goButton
     isolate({
-      DT::datatable(summary_data()$summary_table1,
-                    rownames = FALSE,
-                    # extensions = c('FixedColumns', 'Buttons'),
-                    #filter = 'bottom',
-                    ##### this sentence need to be changed when new variables added
-                    options = list(
-                      # dom = '<"bottom">Bfrtpl',
-                      # buttons = I('colvis'),
-                      columnDefs = list(list(
-                        className = 'dt-center', targets = c(0, 1, 2)
-                      )),
-                      initComplete = JS(
-                        "function(settings, json) {",
-                        "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
-                        "}"
-                      ),
-                      paging = FALSE,
-                      scrollX = FALSE,
-                      searching = FALSE,
-                      ordering = FALSE,
-                      pageLength = 5,
-                      lengthChange = FALSE,
-                      bInfo = FALSE
-                    )
+      DT::datatable(
+        summary_data()$summary_table2,
+        rownames = FALSE,
+        # extensions = c('FixedColumns', 'Buttons'),
+        #filter = 'bottom',
+        ##### this sentence need to be changed when new variables added
+        options = list(
+          # dom = '<"bottom">Bfrtpl',
+          # buttons = I('colvis'),
+          columnDefs = list(
+            list(
+              className = 'dt-center',
+              targets = c(0, 1)
+            )
+          ),
+          initComplete = JS(
+            "function(settings, json) {",
+            "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+            "}"
+          ),
+          paging = FALSE,
+          scrollX = FALSE,
+          searching = FALSE,
+          ordering = FALSE,
+          pageLength = 5,
+          lengthChange = FALSE,
+          bInfo = FALSE
+        )
       )
     })
   })
+  
+  output$summary_bar1 <- renderPlotly({
+    if (is.null(summary_data())) return(NULL)
+    input$goButton
+    isolate({
+      plot_data <- summary_data()$summary_table1 %>% 
+        melt()
+      
+      plot_ly(hoverinfo = "x+y") %>% 
+        add_bars(x = plot_data$variable,
+                 y = plot_data$value,
+                 type = "bar",
+                 text = plot_data$value,
+                 textposition = "outside") %>% 
+        layout(
+          showlegend = FALSE,
+          xaxis = list(
+            zeroline = FALSE,
+            showline = FALSE,
+            showgrid = FALSE,
+            title = "",
+            mirror = "ticks"
+          ),
+          yaxis = list(
+            zeroline = TRUE,
+            showline = FALSE,
+            showgrid = FALSE,
+            showticklabels = FALSE,
+            title = "",
+            mirror = "ticks",
+            range = c(0, max(plot_data$value) * 1.2)
+          )
+        )
+    })
+  })
+  
+  output$summary_bar2 <- renderPlotly({
+    if (is.null(summary_data())) return(NULL)
+    input$goButton
+    isolate({
+      plot_data <- summary_data()$summary_table2 %>% 
+        melt()
+      
+      plot_ly(hoverinfo = "x+y") %>% 
+        add_bars(x = plot_data$variable,
+                 y = plot_data$value,
+                 type = "bar",
+                 text = plot_data$value,
+                 textposition = "outside") %>% 
+        layout(
+          showlegend = FALSE,
+          xaxis = list(
+            zeroline = FALSE,
+            showline = FALSE,
+            showgrid = FALSE,
+            title = "",
+            mirror = "ticks"
+          ),
+          yaxis = list(
+            zeroline = TRUE,
+            showline = FALSE,
+            showgrid = FALSE,
+            showticklabels = FALSE,
+            title = "",
+            mirror = "ticks",
+            range = c(0, max(plot_data$value) * 1.2)
+          )
+        )
+    })
+  })
+  
+  ##-- for current potential contribution
+  contribution_data <- eventReactive(input$goButton, {
+    data <- summary() %>% 
+      filter(year %in% input$year, 
+             market %in% input$mkt,
+             province %in% input$province,
+             channel %in% c("City", "County")) %>% 
+      select(city, channel, value)
+    
+    mapping <- data.frame(city = rep(unique(data$city), each = 2),
+                          channel = rep(c("City", "County"), times = length(unique(data$city))))
+    
+    data1 <- data %>% 
+      right_join(mapping, by = c("city", "channel")) %>% 
+      mutate(value = ifelse(is.na(value), 0, value)) %>% 
+      dcast(city~channel,value.var = "value") %>% 
+      mutate(`Total` = `City` + `County`) %>% 
+      mutate(`City` = round(`City`/1000000, 2),
+             `County` = round(`County`/1000000, 2),
+             `Total` = round(`Total`/1000000, 2))
+    
+    ordering <- data1$city
+    
+    data2 <- data1 %>% 
+      melt(id.vars = "city") %>% 
+      dcast(variable~city, value.var = "value") %>% 
+      mutate(variable = as.character(variable),
+             variable = ifelse(variable == "City",
+                               "城市医院",
+                               ifelse(variable == "County",
+                                      "县",
+                                      variable))) %>% 
+      select("城市" = "variable", ordering)
+    
+    return(list(data = data2,
+                ordering = ordering))
+  })
+  
+  output$current_potential_by_city <- renderDT({
+    if (is.null(contribution_data())) return(NULL)
+    input$goButton
+    isolate({
+      DT::datatable(
+        contribution_data()$data,
+        rownames = FALSE,
+        # extensions = c('FixedColumns', 'Buttons'),
+        #filter = 'bottom',
+        ##### this sentence need to be changed when new variables added
+        options = list(
+          # dom = '<"bottom">Bfrtpl',
+          # buttons = I('colvis'),
+          columnDefs = list(list(
+            className = 'dt-center', targets = '_all'
+          )),
+          initComplete = JS(
+            "function(settings, json) {",
+            "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+            "}"
+          ),
+          paging = FALSE,
+          scrollX = FALSE,
+          searching = FALSE,
+          ordering = FALSE,
+          pageLength = 5,
+          lengthChange = FALSE,
+          bInfo = FALSE
+        )
+      )
+    })
+  })
+
+  output$city_rank_current_potential <- renderPlotly({
+    if (is.null(contribution_data())) return(NULL)
+    input$goButton
+    isolate({
+      plot_data <- contribution_data()$data %>%
+        filter(`城市` == "Total") %>%
+        melt()
+
+      plot_ly(hoverinfo = "x+y") %>%
+        add_bars(x = plot_data$variable,
+                 y = plot_data$value,
+                 type = "bar",
+                 text = plot_data$value,
+                 textposition = "outside",
+                 name = "Total") %>%
+        layout(
+          showlegend = TRUE,
+          xaxis = list(
+            zeroline = FALSE,
+            showline = FALSE,
+            showgrid = FALSE,
+            title = "",
+            mirror = "ticks"
+          ),
+          yaxis = list(
+            zeroline = TRUE,
+            showline = FALSE,
+            showgrid = FALSE,
+            showticklabels = FALSE,
+            title = "",
+            mirror = "ticks",
+            range = c(0, max(plot_data$value) * 1.2)
+          )
+        )
+    })
+  })
+
+  output$channel_distribution_current_potential_by_city <- renderPlotly({
+    if (is.null(contribution_data())) return(NULL)
+    input$goButton
+    isolate({
+      plot_data <- contribution_data()$data %>%
+        melt() %>%
+        dcast(variable~`城市`, value.var = "value") %>%
+        mutate(y1 = round(`城市医院` / `Total`, 2),
+               y2 = round(`县` / `Total`, 2))
+
+      plot_ly(hoverinfo = "x+y") %>%
+        add_bars(x = plot_data$variable,
+                 y = plot_data$y2,
+                 type = "bar",
+                 name = "县") %>%
+        add_bars(x = plot_data$variable,
+                 y = plot_data$y1,
+                 type = "bar",
+                 name = "城市医院") %>%
+        layout(
+          barmode = "stack"
+        )
+    })
+  })
+  
+  ##-- for hospital counts
+  hospital_data <- eventReactive(contribution_data(), {
+    ordering <- contribution_data()$ordering
+    
+    data <- summary() %>% 
+      filter(year %in% input$year, 
+             market %in% input$mkt,
+             province %in% input$province,
+             channel %in% c("City", "County")) %>% 
+      select(city, city.hp.by.province, county.hp.by.province) %>% 
+      distinct() %>% 
+      rename("city_count" = "city.hp.by.province",
+             "county_count" = "county.hp.by.province") %>% 
+      mutate(`Total` = `city_count` + `county_count`) %>% 
+      melt(id.vars = "city") %>% 
+      dcast(variable~city, value.var = "value") %>% 
+      mutate(variable = as.character(variable),
+             variable = ifelse(variable == "City",
+                               "城市医院",
+                               ifelse(variable == "County",
+                                      "县",
+                                      variable))) %>% 
+      select("城市" = "variable", ordering)
+    data[is.na(data)] <- 0
+    
+    return(data)
+  })
+  
+  output$channel_dist_hospital_cnt_by_city <- renderDT({
+    if (is.null(hospital_data())) return(NULL)
+    input$goButton
+    isolate({
+      DT::datatable(
+        hospital_data(),
+        rownames = FALSE,
+        # extensions = c('FixedColumns', 'Buttons'),
+        #filter = 'bottom',
+        ##### this sentence need to be changed when new variables added
+        options = list(
+          # dom = '<"bottom">Bfrtpl',
+          # buttons = I('colvis'),
+          columnDefs = list(list(
+            className = 'dt-center', targets = '_all'
+          )),
+          initComplete = JS(
+            "function(settings, json) {",
+            "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+            "}"
+          ),
+          paging = FALSE,
+          scrollX = FALSE,
+          searching = FALSE,
+          ordering = FALSE,
+          pageLength = 5,
+          lengthChange = FALSE,
+          bInfo = FALSE
+        )
+      )
+    })
+  })
+  
+  ##-- for total potential and share
+  share_data <- eventReactive(contribution_data(), {
+    ordering <- contribution_data()$ordering
+    
+    data <- summary() %>% 
+      filter(year %in% input$year, 
+             market %in% input$mkt,
+             province %in% input$province,
+             channel %in% c("City", "County")) %>% 
+      select(city, value, internal.sales) %>% 
+      group_by(city) %>% 
+      summarise(value = sum(value, na.rm = TRUE),
+                internal.sales = sum(internal.sales, na.rm = TRUE)) %>% 
+      ungroup() %>% 
+      mutate(share = round(internal.sales / value, 3),
+             share = paste0(share*100, "%"),
+             value = round(value/1000000, 2),
+             internal.sales = round(internal.sales/1000000, 2)) %>% 
+      melt(id.vars = "city") %>% 
+      dcast(variable~city, value.var = "value") %>% 
+      mutate(variable = ifelse(variable == "value",
+                               "Total potential",
+                               ifelse(variable == "internal.sales",
+                                      "TTH",
+                                      ifelse(variable == "share",
+                                             "Share%",
+                                             variable)))) %>% 
+      select("城市" = "variable", ordering)
+    data[is.na(data)] <- 0
+    
+    return(data)
+  })
+  
+  output$total_current_potential_share_by_city <- renderDT({
+    if (is.null(share_data())) return(NULL)
+    input$goButton
+    isolate({
+      DT::datatable(
+        share_data(),
+        rownames = FALSE,
+        # extensions = c('FixedColumns', 'Buttons'),
+        #filter = 'bottom',
+        ##### this sentence need to be changed when new variables added
+        options = list(
+          # dom = '<"bottom">Bfrtpl',
+          # buttons = I('colvis'),
+          columnDefs = list(list(
+            className = 'dt-center', targets = '_all'
+          )),
+          initComplete = JS(
+            "function(settings, json) {",
+            "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+            "}"
+          ),
+          paging = FALSE,
+          scrollX = FALSE,
+          searching = FALSE,
+          ordering = FALSE,
+          pageLength = 5,
+          lengthChange = FALSE,
+          bInfo = FALSE
+        )
+      )
+    })
+  })
+  
   
   
   # tablefor3 <- reactive ({

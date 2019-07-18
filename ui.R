@@ -64,7 +64,7 @@ ui <- dashboardPage(
                      status = "primary",
                      
                      # fluidRow(column(3, uiOutput("sub_cat_ui"))),
-                     fluidRow(
+                     # fluidRow(
                        column(width = 4,
                               # offset = 1,
                               div(DT::dataTableOutput("summary_table"), 
@@ -74,19 +74,20 @@ ui <- dashboardPage(
                               fluidRow(div(DT::dataTableOutput("summary_table1"),
                                            style = "font-size:90%")),
                               br(),
-                              fluidRow(div(plotlyOutput("summary_bar"), 
+                              fluidRow(div(plotlyOutput("summary_bar1", width = "90%", height = "180px"), 
                                            style = "font-size:90%"))
                               ),
                        
-                       column(width = 3,
+                       column(width = 2,
                               offset = 1,
                               fluidRow(div(DT::dataTableOutput("summary_table2"),
                                            style = "font-size:90%")),
                               br(),
-                              fluidRow(div(plotlyOutput("summary_bar1"), 
+                              fluidRow(div(plotlyOutput("summary_bar2", width = "90%", height = "180px"), 
                                            style = "font-size:90%"))
                               )
-                       )
+                       # style = "height:200px"
+                       # )
                      )
                  ),
                
@@ -101,19 +102,19 @@ ui <- dashboardPage(
                    br(),
                    h5("1, Current Potential Contribution by City(CU/Mn)"),
                    br(),
-                   fluidRow(div(DT::dataTableOutput("current_potential_by_city"),
-                                style = "font-size:90%")),
+                   div(DT::dataTableOutput("current_potential_by_city"),
+                       style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
                    h5("2, City Rank of Current Potential Contribution(CU/Mn)"),
                    br(),
-                   fluidRow(div(plotlyOutput("city_rank_current_potential"),
+                   fluidRow(div(plotlyOutput("city_rank_current_potential", width = "90%", height = "200px"),
                                 style = "font-size:90%")),
                    
                    br(), br(),
                    h5("3, Channel Distribution of Current Potential Contribution by City(CU/Mn)"),
                    br(),
-                   fluidRow(div(plotlyOutput("channel_distribution_current_potential_by_city"),
+                   fluidRow(div(plotlyOutput("channel_distribution_current_potential_by_city", width = "90%", height = "200px"),
                                 style = "font-size:90%"))
                    )
                  ),
@@ -128,10 +129,10 @@ ui <- dashboardPage(
                    
                    br(),
                    # h3("Current Potential Contribution by City(CU/Mn)"),
-                   br(),
-                   fluidRow(div(DT::dataTableOutput("channel_dist_hospital_cnt_by_city"),
-                                style = "font-size:90%"))
-                   )
+                   # br(),
+                   div(DT::dataTableOutput("channel_dist_hospital_cnt_by_city"),
+                       style = "font-size:90%; overflow-x:scroll;")
+                 )
                ),
                
                fluidRow(
@@ -145,8 +146,8 @@ ui <- dashboardPage(
                    br(),
                    h5("1, Total Current Potential and Share by City(CU/Mn)"),
                    br(),
-                   fluidRow(div(DT::dataTableOutput("total_current_potential_share_by_city"),
-                                style = "font-size:90%")),
+                   div(DT::dataTableOutput("total_current_potential_share_by_city"),
+                       style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
                    h5("2, Total Current Potential VS. Pfizer(CU/Mn)"),
