@@ -234,7 +234,8 @@ server <- function(input, output, session) {
                  y = plot_data$value,
                  type = "bar",
                  text = plot_data$value,
-                 textposition = "outside") %>% 
+                 textposition = "outside",
+                 color = I("#93CDDD")) %>% 
         layout(
           showlegend = FALSE,
           xaxis = list(
@@ -269,7 +270,8 @@ server <- function(input, output, session) {
                  y = plot_data$value,
                  type = "bar",
                  text = plot_data$value,
-                 textposition = "outside") %>% 
+                 textposition = "outside",
+                 color = I("#93CDDD")) %>% 
         layout(
           showlegend = FALSE,
           xaxis = list(
@@ -311,7 +313,8 @@ server <- function(input, output, session) {
       mutate(`Total` = `City` + `County`) %>% 
       mutate(`City` = round(`City`/1000000, 2),
              `County` = round(`County`/1000000, 2),
-             `Total` = round(`Total`/1000000, 2))
+             `Total` = round(`Total`/1000000, 2)) %>% 
+      arrange(-`Total`)
     
     ordering <- data1$city
     
@@ -325,6 +328,7 @@ server <- function(input, output, session) {
                                       "县",
                                       variable))) %>% 
       select("城市" = "variable", ordering)
+    data2[is.na(data2)] <- 0
     
     return(list(data = data2,
                 ordering = ordering))
@@ -377,7 +381,8 @@ server <- function(input, output, session) {
                  type = "bar",
                  text = plot_data$value,
                  textposition = "outside",
-                 name = "Total") %>%
+                 name = "Total",
+                 color = I("#4BACC6")) %>%
         layout(
           showlegend = TRUE,
           xaxis = list(
@@ -412,15 +417,33 @@ server <- function(input, output, session) {
 
       plot_ly(hoverinfo = "x+y") %>%
         add_bars(x = plot_data$variable,
-                 y = plot_data$y2,
-                 type = "bar",
-                 name = "县") %>%
-        add_bars(x = plot_data$variable,
                  y = plot_data$y1,
                  type = "bar",
-                 name = "城市医院") %>%
+                 name = "城市医院",
+                 color = I("#9BBB59")) %>%
+        add_bars(x = plot_data$variable,
+                 y = plot_data$y2,
+                 type = "bar",
+                 name = "县",
+                 color = I("#4BACC6")) %>%
         layout(
-          barmode = "stack"
+          showlegend = TRUE,
+          barmode = "stack",
+          xaxis = list(
+            zeroline = FALSE,
+            showline = FALSE,
+            showgrid = FALSE,
+            title = "",
+            mirror = "ticks"
+          ),
+          yaxis =  list(
+            zeroline = TRUE,
+            showline = FALSE,
+            showgrid = FALSE,
+            showticklabels = FALSE,
+            title = "",
+            mirror = "ticks"
+          )
         )
     })
   })
@@ -442,9 +465,9 @@ server <- function(input, output, session) {
       melt(id.vars = "city") %>% 
       dcast(variable~city, value.var = "value") %>% 
       mutate(variable = as.character(variable),
-             variable = ifelse(variable == "City",
+             variable = ifelse(variable == "city_count",
                                "城市医院",
-                               ifelse(variable == "County",
+                               ifelse(variable == "county_count",
                                       "县",
                                       variable))) %>% 
       select("城市" = "variable", ordering)
@@ -487,9 +510,7 @@ server <- function(input, output, session) {
   })
   
   ##-- for total potential and share
-  share_data <- eventReactive(contribution_data(), {
-    ordering <- contribution_data()$ordering
-    
+  share_data <- eventReactive(input$goButton, {
     data <- summary() %>% 
       filter(year %in% input$year, 
              market %in% input$mkt,
@@ -501,30 +522,37 @@ server <- function(input, output, session) {
                 internal.sales = sum(internal.sales, na.rm = TRUE)) %>% 
       ungroup() %>% 
       mutate(share = round(internal.sales / value, 3),
-             share = paste0(share*100, "%"),
              value = round(value/1000000, 2),
              internal.sales = round(internal.sales/1000000, 2)) %>% 
       melt(id.vars = "city") %>% 
-      dcast(variable~city, value.var = "value") %>% 
       mutate(variable = ifelse(variable == "value",
                                "Total potential",
                                ifelse(variable == "internal.sales",
                                       "TTH",
                                       ifelse(variable == "share",
                                              "Share%",
-                                             variable)))) %>% 
-      select("城市" = "variable", ordering)
+                                             variable))))
     data[is.na(data)] <- 0
     
     return(data)
   })
   
   output$total_current_potential_share_by_city <- renderDT({
-    if (is.null(share_data())) return(NULL)
+    if (is.null(share_data()) | is.null(contribution_data())) return(NULL)
     input$goButton
     isolate({
+      ordering <- contribution_data()$ordering
+      
+      table_data <- share_data() %>% 
+        mutate(value = ifelse(variable == "Share%",
+                              paste0(value*100, "%"),
+                              value)) %>% 
+        dcast(variable~city, value.var = "value") %>% 
+        .[c(which(.$variable == "Total potential"), which(.$variable == "TTH"), which(.$variable == "Share%")), ] %>% 
+        select("城市" = "variable", ordering)
+      
       DT::datatable(
-        share_data(),
+        table_data,
         rownames = FALSE,
         # extensions = c('FixedColumns', 'Buttons'),
         #filter = 'bottom',
@@ -551,6 +579,525 @@ server <- function(input, output, session) {
       )
     })
   })
+  
+  output$total_current_potential_share <- renderPlotly({
+    if (is.null(share_data()) | is.null(contribution_data())) return(NULL)
+    input$goButton
+    isolate({
+      ordering = contribution_data()$ordering
+      plot_data <- share_data() %>% 
+        mutate(city = factor(city, levels = ordering)) %>% 
+        arrange(city)
+      
+      plot_ly(hoverinfo = "x+y") %>% 
+        add_bars(x = plot_data$city[which(plot_data$variable == "Total potential")],
+                 y = plot_data$value[which(plot_data$variable == "Total potential")],
+                 text = plot_data$value[which(plot_data$variable == "Total potential")],
+                 textposition = "outside",
+                 type = "bar",
+                 name = "Total potential",
+                 color = I("#9BBB59")) %>% 
+        add_bars(x = plot_data$city[which(plot_data$variable == "TTH")],
+                 y = plot_data$value[which(plot_data$variable == "TTH")],
+                 text = plot_data$value[which(plot_data$variable == "TTH")],
+                 textposition = "outside",
+                 type = "bar",
+                 name = "TTH",
+                 color = I("#4BACC6")) %>% 
+        add_trace(x = plot_data$city[which(plot_data$variable == "Share%")],
+                  y = plot_data$value[which(plot_data$variable == "Share%")],
+                  yaxis = "y2",
+                  type = "scatter",
+                  mode = "lines+markers",
+                  name = "Share%",
+                  color = I("#E46C0A")) %>% 
+        add_annotations(x = plot_data$city[which(plot_data$variable == "Share%")],
+                        y = plot_data$value[which(plot_data$variable == "Share%")],
+                        text = paste0(plot_data$value[which(plot_data$variable == "Share%")]*100, "%"),
+                        xref = "x",
+                        yref = "y2",
+                        xanchor = "center",
+                        yanchor = "bottom",
+                        showarrow = FALSE,
+                        font = list(color = "#E46C0A")) %>% 
+        layout(
+          showlegend = TRUE,
+          xaxis = list(
+            zeroline = FALSE,
+            showline = FALSE,
+            showgrid = FALSE,
+            title = "",
+            mirror = "ticks"
+          ),
+          yaxis =  list(
+            side = "left",
+            zeroline = TRUE,
+            showline = FALSE,
+            showgrid = FALSE,
+            showticklabels = FALSE,
+            title = "",
+            mirror = "ticks",
+            range = c(0, max(plot_data$value[which(plot_data$variable == "Total potential")], 0.01) * 1.2)
+          ),
+          yaxis2 = list(
+            overlaying = "y",
+            side = "right",
+            zeroline = TRUE,
+            showline = FALSE,
+            showgrid = FALSE,
+            showticklabels = FALSE,
+            title = "",
+            mirror = "ticks",
+            range = c(0, max(plot_data$value[which(plot_data$variable == "Share%")], 0.001) * 1.2)
+          )
+        )
+    })
+  })
+  
+  ##-- for city potential and share
+  city_data <- eventReactive(contribution_data(), {
+    data <- summary() %>% 
+      filter(year %in% input$year, 
+             market %in% input$mkt,
+             province %in% input$province,
+             channel %in% c("City")) %>% 
+      select(city, value, internal.sales)
+    
+    if (length(data$city) == 0) {
+      data <- bind_rows(data,
+                        data.frame(city = contribution_data()$ordering,
+                                   value = 0,
+                                   internal.sales = 0))
+    }
+    
+    data1 <- data %>% 
+      group_by(city) %>% 
+      summarise(value = sum(value, na.rm = TRUE),
+                internal.sales = sum(internal.sales, na.rm = TRUE)) %>% 
+      ungroup() %>% 
+      mutate(share = round(internal.sales / value, 3),
+             value = round(value/1000000, 2),
+             internal.sales = round(internal.sales/1000000, 2)) %>% 
+      melt(id.vars = "city") %>% 
+      mutate(variable = ifelse(variable == "value",
+                               "Total potential",
+                               ifelse(variable == "internal.sales",
+                                      "TTH",
+                                      ifelse(variable == "share",
+                                             "Share%",
+                                             variable))))
+    data1[is.na(data1)] <- 0
+    
+    return(data1)
+  })
+  
+  output$city_hospitals_current_potential_share_by_city <- renderDT({
+    if (is.null(city_data()) | is.null(contribution_data())) return(NULL)
+    input$goButton
+    isolate({
+      ordering <- contribution_data()$ordering
+      
+      table_data <- city_data() %>% 
+        mutate(value = ifelse(variable == "Share%",
+                              paste0(value*100, "%"),
+                              value)) %>% 
+        dcast(variable~city, value.var = "value") %>% 
+        .[c(which(.$variable == "Total potential"), which(.$variable == "TTH"), which(.$variable == "Share%")), ] %>% 
+        select("城市" = "variable", ordering)
+      
+      DT::datatable(
+        table_data,
+        rownames = FALSE,
+        # extensions = c('FixedColumns', 'Buttons'),
+        #filter = 'bottom',
+        ##### this sentence need to be changed when new variables added
+        options = list(
+          # dom = '<"bottom">Bfrtpl',
+          # buttons = I('colvis'),
+          columnDefs = list(list(
+            className = 'dt-center', targets = '_all'
+          )),
+          initComplete = JS(
+            "function(settings, json) {",
+            "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+            "}"
+          ),
+          paging = FALSE,
+          scrollX = FALSE,
+          searching = FALSE,
+          ordering = FALSE,
+          pageLength = 5,
+          lengthChange = FALSE,
+          bInfo = FALSE
+        )
+      )
+    })
+  })
+  
+  output$city_hospitals_current_potential_share <- renderPlotly({
+    if (is.null(city_data()) | is.null(contribution_data())) return(NULL)
+    input$goButton
+    isolate({
+      ordering = contribution_data()$ordering
+      plot_data <- city_data() %>% 
+        mutate(city = factor(city, levels = ordering)) %>% 
+        arrange(city)
+      
+      plot_ly(hoverinfo = "x+y") %>% 
+        add_bars(x = plot_data$city[which(plot_data$variable == "Total potential")],
+                 y = plot_data$value[which(plot_data$variable == "Total potential")],
+                 text = plot_data$value[which(plot_data$variable == "Total potential")],
+                 textposition = "outside",
+                 type = "bar",
+                 name = "Total potential",
+                 color = I("#9BBB59")) %>% 
+        add_bars(x = plot_data$city[which(plot_data$variable == "TTH")],
+                 y = plot_data$value[which(plot_data$variable == "TTH")],
+                 text = plot_data$value[which(plot_data$variable == "TTH")],
+                 textposition = "outside",
+                 type = "bar",
+                 name = "TTH",
+                 color = I("#4BACC6")) %>% 
+        add_trace(x = plot_data$city[which(plot_data$variable == "Share%")],
+                  y = plot_data$value[which(plot_data$variable == "Share%")],
+                  yaxis = "y2",
+                  type = "scatter",
+                  mode = "lines+markers",
+                  name = "Share%",
+                  color = I("#E46C0A")) %>% 
+        add_annotations(x = plot_data$city[which(plot_data$variable == "Share%")],
+                        y = plot_data$value[which(plot_data$variable == "Share%")],
+                        text = paste0(plot_data$value[which(plot_data$variable == "Share%")]*100, "%"),
+                        xref = "x",
+                        yref = "y2",
+                        xanchor = "center",
+                        yanchor = "bottom",
+                        showarrow = FALSE,
+                        font = list(color = "#E46C0A")) %>% 
+        layout(
+          showlegend = TRUE,
+          xaxis = list(
+            zeroline = FALSE,
+            showline = FALSE,
+            showgrid = FALSE,
+            title = "",
+            mirror = "ticks"
+          ),
+          yaxis =  list(
+            side = "left",
+            zeroline = TRUE,
+            showline = FALSE,
+            showgrid = FALSE,
+            showticklabels = FALSE,
+            title = "",
+            mirror = "ticks",
+            range = c(0, max(plot_data$value[which(plot_data$variable == "Total potential")], 0.01) * 1.2)
+          ),
+          yaxis2 = list(
+            overlaying = "y",
+            side = "right",
+            zeroline = FALSE,
+            showline = FALSE,
+            showgrid = FALSE,
+            showticklabels = FALSE,
+            title = "",
+            mirror = "ticks",
+            range = c(0, max(plot_data$value[which(plot_data$variable == "Share%")], 0.001) * 1.2)
+          )
+        )
+    })
+  })
+  
+  ##-- for county potential and share
+  county_data <- eventReactive(contribution_data(), {
+    data <- summary() %>% 
+      filter(year %in% input$year, 
+             market %in% input$mkt,
+             province %in% input$province,
+             channel %in% c("County")) %>% 
+      select(city, value, internal.sales)
+    
+    if (length(data$city) == 0) {
+      data <- bind_rows(data,
+                        data.frame(city = contribution_data()$ordering,
+                                   value = 0,
+                                   internal.sales = 0))
+    }
+    
+    data1 <- data %>% 
+      group_by(city) %>% 
+      summarise(value = sum(value, na.rm = TRUE),
+                internal.sales = sum(internal.sales, na.rm = TRUE)) %>% 
+      ungroup() %>% 
+      mutate(share = round(internal.sales / value, 3),
+             value = round(value/1000000, 2),
+             internal.sales = round(internal.sales/1000000, 2)) %>% 
+      melt(id.vars = "city") %>% 
+      mutate(variable = ifelse(variable == "value",
+                               "Total potential",
+                               ifelse(variable == "internal.sales",
+                                      "TTH",
+                                      ifelse(variable == "share",
+                                             "Share%",
+                                             variable))))
+    data1[is.na(data1)] <- 0
+    
+    return(data1)
+  })
+  
+  output$County_hospitals_current_potential_share_by_city <- renderDT({
+    if (is.null(county_data()) | is.null(contribution_data())) return(NULL)
+    input$goButton
+    isolate({
+      ordering <- contribution_data()$ordering
+      
+      table_data <- county_data() %>% 
+        mutate(value = ifelse(variable == "Share%",
+                              paste0(value*100, "%"),
+                              value)) %>% 
+        dcast(variable~city, value.var = "value") %>% 
+        .[c(which(.$variable == "Total potential"), which(.$variable == "TTH"), which(.$variable == "Share%")), ] %>% 
+        select("城市" = "variable", ordering)
+      
+      DT::datatable(
+        table_data,
+        rownames = FALSE,
+        # extensions = c('FixedColumns', 'Buttons'),
+        #filter = 'bottom',
+        ##### this sentence need to be changed when new variables added
+        options = list(
+          # dom = '<"bottom">Bfrtpl',
+          # buttons = I('colvis'),
+          columnDefs = list(list(
+            className = 'dt-center', targets = '_all'
+          )),
+          initComplete = JS(
+            "function(settings, json) {",
+            "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+            "}"
+          ),
+          paging = FALSE,
+          scrollX = FALSE,
+          searching = FALSE,
+          ordering = FALSE,
+          pageLength = 5,
+          lengthChange = FALSE,
+          bInfo = FALSE
+        )
+      )
+    })
+  })
+  
+  output$county_hospitals_current_potential_share <- renderPlotly({
+    if (is.null(county_data()) | is.null(contribution_data())) return(NULL)
+    input$goButton
+    isolate({
+      ordering = contribution_data()$ordering
+      plot_data <- county_data() %>% 
+        mutate(city = factor(city, levels = ordering)) %>% 
+        arrange(city)
+      
+      plot_ly(hoverinfo = "x+y") %>% 
+        add_bars(x = plot_data$city[which(plot_data$variable == "Total potential")],
+                 y = plot_data$value[which(plot_data$variable == "Total potential")],
+                 text = plot_data$value[which(plot_data$variable == "Total potential")],
+                 textposition = "outside",
+                 type = "bar",
+                 name = "Total potential",
+                 color = I("#9BBB59")) %>% 
+        add_bars(x = plot_data$city[which(plot_data$variable == "TTH")],
+                 y = plot_data$value[which(plot_data$variable == "TTH")],
+                 text = plot_data$value[which(plot_data$variable == "TTH")],
+                 textposition = "outside",
+                 type = "bar",
+                 name = "TTH",
+                 color = I("#4BACC6")) %>% 
+        add_trace(x = plot_data$city[which(plot_data$variable == "Share%")],
+                  y = plot_data$value[which(plot_data$variable == "Share%")],
+                  yaxis = "y2",
+                  type = "scatter",
+                  mode = "lines+markers",
+                  name = "Share%",
+                  color = I("#E46C0A")) %>% 
+        add_annotations(x = plot_data$city[which(plot_data$variable == "Share%")],
+                        y = plot_data$value[which(plot_data$variable == "Share%")],
+                        text = paste0(plot_data$value[which(plot_data$variable == "Share%")]*100, "%"),
+                        xref = "x",
+                        yref = "y2",
+                        xanchor = "center",
+                        yanchor = "bottom",
+                        showarrow = FALSE,
+                        font = list(color = "#E46C0A")) %>% 
+        layout(
+          showlegend = TRUE,
+          xaxis = list(
+            zeroline = FALSE,
+            showline = FALSE,
+            showgrid = FALSE,
+            title = "",
+            mirror = "ticks"
+          ),
+          yaxis =  list(
+            side = "left",
+            zeroline = TRUE,
+            showline = FALSE,
+            showgrid = FALSE,
+            showticklabels = FALSE,
+            title = "",
+            mirror = "ticks",
+            range = c(0, max(plot_data$value[which(plot_data$variable == "Total potential")], 0.01) * 1.2)
+          ),
+          yaxis2 = list(
+            overlaying = "y",
+            side = "right",
+            zeroline = FALSE,
+            showline = FALSE,
+            showgrid = FALSE,
+            showticklabels = FALSE,
+            title = "",
+            mirror = "ticks",
+            range = c(0, max(plot_data$value[which(plot_data$variable == "Share%")], 0.001) * 1.2)
+          )
+        )
+    })
+  })
+  
+  ##-- for potential growth
+  growth_data <- eventReactive(contribution_data(), {
+    if (input$year == 2016) return(NULL)
+    data <- summary() %>% 
+      filter(year %in% c(as.numeric(input$year)-1, input$year), 
+             market %in% input$mkt,
+             province %in% input$province,
+             channel %in% c("City", "County")) %>% 
+      select(city, channel, year, value)
+    
+    if (!("City" %in% data$channel)) {
+      data <- bind_rows(data,
+                        data.frame(city = contribution_data()$ordering,
+                                   channel = "City",
+                                   year = c(as.numeric(input$year)-1, as.numeric(input$year)),
+                                   value = 0))
+    } else if (!("County" %in% data$channel)) {
+      data <- bind_rows(data,
+                        data.frame(city = contribution_data()$ordering,
+                                   channel = "County",
+                                   year = c(as.numeric(input$year)-1, as.numeric(input$year)),
+                                   value = 0))
+    }
+    
+    data1 <- data %>% 
+      mutate(year = ifelse(year == input$year,
+                           "r",
+                           "p")) %>% 
+      dcast(city~channel+year, value.var = "value") %>% 
+      mutate(city_growth = round(`City_r` / `City_p` - 1, 3),
+             county_growth = round(`County_r` / `County_p` - 1, 3),
+             total_growth = round((`City_r` + `County_r`) / (`City_p` + `County_p`) - 1, 3)) %>% 
+      select(city, city_growth, county_growth, total_growth)
+    data1[is.na(data1)] <- 0
+    
+    return(data1)
+  })
+  
+  output$growth_current_potential_by_city <- renderDT({
+    if (is.null(growth_data()) | is.null(contribution_data())) return(NULL)
+    input$goButton
+    isolate({
+      ordering <- contribution_data()$ordering
+      
+      table_data <- growth_data() %>% 
+        mutate(city_growth = paste0(city_growth*100, "%"),
+               county_growth = paste0(county_growth*100, "%"),
+               total_growth = paste0(total_growth*100, "%")) %>% 
+        melt(id.vars = "city") %>% 
+        dcast(variable~city, value.var = "value") %>% 
+        mutate(variable = ifelse(variable == "city_growth",
+                                 "城市医院",
+                                 ifelse(variable == "county_growth",
+                                        "县",
+                                        ifelse(variable == "total_growth",
+                                               "Total",
+                                               variable)))) %>% 
+        select("城市" = "variable", ordering)
+      
+      DT::datatable(
+        table_data,
+        rownames = FALSE,
+        # extensions = c('FixedColumns', 'Buttons'),
+        #filter = 'bottom',
+        ##### this sentence need to be changed when new variables added
+        options = list(
+          # dom = '<"bottom">Bfrtpl',
+          # buttons = I('colvis'),
+          columnDefs = list(list(
+            className = 'dt-center', targets = '_all'
+          )),
+          initComplete = JS(
+            "function(settings, json) {",
+            "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff'});",
+            "}"
+          ),
+          paging = FALSE,
+          scrollX = FALSE,
+          searching = FALSE,
+          ordering = FALSE,
+          pageLength = 5,
+          lengthChange = FALSE,
+          bInfo = FALSE
+        )
+      )
+    })
+  })
+  
+  output$growth_current_potential_by_city_chart <- renderPlotly({
+    if (is.null(growth_data()) | is.null(contribution_data())) return(NULL)
+    input$goButton
+    isolate({
+      ordering <- contribution_data()$ordering
+      plot_data <- growth_data() %>% 
+        mutate(city = factor(city, levels = ordering))
+      
+      plot_ly(hoverinfo = "x+y") %>% 
+        add_bars(x = plot_data$city,
+                 y = plot_data$city_growth*100,
+                 text = paste0(plot_data$city_growth*100, "%"),
+                 textposition = "outside",
+                 type = "bar",
+                 name = "城市医院",
+                 color = I("#9BBB59")) %>% 
+        add_bars(x = plot_data$city,
+                 y = plot_data$county_growth*100,
+                 text = paste0(plot_data$county_growth*100, "%"),
+                 textposition = "outside",
+                 type = "bar",
+                 name = "县",
+                 color = I("#4BACC6")) %>% 
+        layout(
+          showlegend = TRUE,
+          xaxis = list(
+            zeroline = FALSE,
+            showline = FALSE,
+            showgrid = FALSE,
+            title = "",
+            mirror = "ticks"
+          ),
+          yaxis =  list(
+            zeroline = TRUE,
+            showline = FALSE,
+            showgrid = FALSE,
+            ticksuffix = "%",
+            title = "",
+            mirror = "ticks",
+            range = c(0, max(plot_data$city_growth, plot_data$county_growth) * 120)
+          )
+        )
+    })
+  })
+  
+  
+  
+  
   
   
   

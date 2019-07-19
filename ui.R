@@ -71,20 +71,20 @@ ui <- dashboardPage(
                                   style = "font-size:90%")),
                        column(width = 3,
                               offset = 1,
-                              fluidRow(div(DT::dataTableOutput("summary_table1"),
-                                           style = "font-size:90%")),
+                              div(DT::dataTableOutput("summary_table1"),
+                                  style = "font-size:90%"),
                               br(),
-                              fluidRow(div(plotlyOutput("summary_bar1", width = "90%", height = "180px"), 
-                                           style = "font-size:90%"))
+                              div(plotlyOutput("summary_bar1", height = "180px"), 
+                                  style = "font-size:90%")
                               ),
                        
                        column(width = 2,
                               offset = 1,
-                              fluidRow(div(DT::dataTableOutput("summary_table2"),
-                                           style = "font-size:90%")),
+                              div(DT::dataTableOutput("summary_table2"),
+                                  style = "font-size:90%"),
                               br(),
-                              fluidRow(div(plotlyOutput("summary_bar2", width = "90%", height = "180px"), 
-                                           style = "font-size:90%"))
+                              div(plotlyOutput("summary_bar2", height = "180px"), 
+                                  style = "font-size:90%")
                               )
                        # style = "height:200px"
                        # )
@@ -108,14 +108,14 @@ ui <- dashboardPage(
                    br(), br(),
                    h5("2, City Rank of Current Potential Contribution(CU/Mn)"),
                    br(),
-                   fluidRow(div(plotlyOutput("city_rank_current_potential", width = "90%", height = "200px"),
-                                style = "font-size:90%")),
+                   div(plotlyOutput("city_rank_current_potential", height = "200px"),
+                       style = "font-size:90%"),
                    
                    br(), br(),
                    h5("3, Channel Distribution of Current Potential Contribution by City(CU/Mn)"),
                    br(),
-                   fluidRow(div(plotlyOutput("channel_distribution_current_potential_by_city", width = "90%", height = "200px"),
-                                style = "font-size:90%"))
+                   div(plotlyOutput("channel_distribution_current_potential_by_city", height = "200px"),
+                       style = "font-size:90%")
                    )
                  ),
                    
@@ -152,8 +152,8 @@ ui <- dashboardPage(
                    br(), br(),
                    h5("2, Total Current Potential VS. Pfizer(CU/Mn)"),
                    br(),
-                   fluidRow(div(plotlyOutput("total_current_potential_share"),
-                                style = "font-size:90%"))
+                   div(plotlyOutput("total_current_potential_share", height = "200px"),
+                       style = "font-size:90%")
                  )
                ),
                
@@ -168,14 +168,14 @@ ui <- dashboardPage(
                    br(),
                    h5("1, City Hospitals Current Potential and Share by City(CU/Mn)"),
                    br(),
-                   fluidRow(div(DT::dataTableOutput("city_hospitals_current_potential_share_by_city"),
-                                style = "font-size:90%")),
+                   div(DT::dataTableOutput("city_hospitals_current_potential_share_by_city"),
+                       style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
                    h5("2, City Hospitals Current Potential VS. Pfizer(CU/Mn)"),
                    br(),
-                   fluidRow(div(plotlyOutput("city_hospitals_current_potential_share"),
-                                style = "font-size:90%"))
+                   div(plotlyOutput("city_hospitals_current_potential_share", height = "200px"),
+                       style = "font-size:90%")
                  )
                ),
                
@@ -190,14 +190,14 @@ ui <- dashboardPage(
                    br(),
                    h5("1, County Hospitals Current Potential and Share by City(CU/Mn)"),
                    br(),
-                   fluidRow(div(DT::dataTableOutput("County_hospitals_current_potential_share_by_city"),
-                                style = "font-size:90%")),
+                   div(DT::dataTableOutput("County_hospitals_current_potential_share_by_city"),
+                       style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
                    h5("2, County Hospitals Current Potential VS. Pfizer(CU/Mn)"),
                    br(),
-                   fluidRow(div(plotlyOutput("county_hospitals_current_potential_share"),
-                                style = "font-size:90%"))
+                   div(plotlyOutput("county_hospitals_current_potential_share", height = "200px"),
+                       style = "font-size:90%")
                  )
                ),
                
@@ -212,14 +212,14 @@ ui <- dashboardPage(
                    br(),
                    h5("1, Current Potential Growth Between City Hospitals and County Hospitals by City(CU/Mn)"),
                    br(),
-                   fluidRow(div(DT::dataTableOutput("growth_current_potential_by_city"),
-                                style = "font-size:90%")),
+                   div(DT::dataTableOutput("growth_current_potential_by_city"),
+                       style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
                    h5("2, Current Potential Growth Between City Hospitals and County Hospitals by City(CU/Mn)"),
                    br(),
-                   fluidRow(div(plotlyOutput("growth_current_potential_by_city_chart"),
-                                style = "font-size:90%"))
+                   div(plotlyOutput("growth_current_potential_by_city_chart", height = "200px"),
+                       style = "font-size:90%")
                  )
                )
       ),
