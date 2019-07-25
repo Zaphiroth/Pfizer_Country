@@ -1,6 +1,7 @@
 options(shiny.maxRequestSize = 1000 * 1024 ^ 2)
 
 load("./data/data.RData")
+load("./data/raw_data.RData")
 ######################## load function graph1 ##################################
 
 source("./functions/99_graph1_corp.R")
@@ -13,43 +14,43 @@ source("./functions/99_graph1_corp_m.R")
 
 
 server <- function(input, output, session) {
-  summary <- reactive({
-    if (is.null(input$summary))
-      return(NULL)
-    inFile.summary <- input$summary
+  # summary <- reactive({
+  #   if (is.null(input$summary))
+  #     return(NULL)
+  #   inFile.summary <- input$summary
+  # 
+  #   data <-
+  #     read_csv(inFile.summary$datapath, locale = locale(encoding = "GB18030")) %>%
+  #     data.frame(stringsAsFactors = FALSE)
+  #   
+  #   colnames(data) <- tolower(colnames(data))
+  #   
+  #   data
+  #   
+  # })
   
-    data <- 
-      read_csv(inFile.summary$datapath, locale = locale(encoding = "GB18030")) %>% 
-      data.frame(stringsAsFactors = FALSE)
-    
-    colnames(data) <- tolower(colnames(data))
-    
-    data
-    
-  })
   
-  
-  observeEvent(input$summary, {
+  observeEvent(raw_data, {
     updateSelectInput(session,
                       "year",
-                      choices = sort(unique(summary()$year)),
-                      selected = sort(unique(summary()$year))[1])
+                      choices = sort(unique(raw_data$year)),
+                      selected = sort(unique(raw_data$year))[1])
   })
   
   
-  observeEvent(input$summary, {
+  observeEvent(raw_data, {
     updateSelectInput(session,
                       "mkt",
-                      choices = sort(unique(summary()$market)),
-                      selected = sort(unique(summary()$market))[1])
+                      choices = sort(unique(raw_data$market)),
+                      selected = sort(unique(raw_data$market))[1])
   })
   
 
-  observeEvent(input$summary, {
+  observeEvent(raw_data, {
     updateSelectInput(session, 
                       "province",
-                      choices = sort(unique(summary()$province)),
-                      selected = sort(unique(summary()$province))[1])
+                      choices = sort(unique(raw_data$province)),
+                      selected = sort(unique(raw_data$province))[1])
   })
   
   ##-- for summary tables and plots
@@ -62,7 +63,7 @@ server <- function(input, output, session) {
         arrange(省份, 城市级别)
       
       # summary table
-      data <- summary() %>%
+      data <- raw_data %>%
         filter(year %in% input$year, 
                market %in% input$mkt,
                province %in% input$province) %>%
@@ -89,7 +90,7 @@ server <- function(input, output, session) {
         
     
       # summary table1
-      data3 <- summary() %>%
+      data3 <- raw_data %>%
         filter(year %in% input$year, 
                market %in% input$mkt,
                province %in% input$province) %>%
@@ -103,7 +104,7 @@ server <- function(input, output, session) {
                       一级及以下 = sum(一级及以下, na.rm = TRUE))
       
       # summary table2
-      data4 <- summary() %>% 
+      data4 <- raw_data %>% 
         filter(year %in% input$year, 
                market %in% input$mkt,
                province %in% input$province) %>% 
@@ -302,7 +303,7 @@ server <- function(input, output, session) {
   
   ##-- for current potential contribution
   contribution_data <- eventReactive(input$goButton, {
-    data <- summary() %>% 
+    data <- raw_data %>% 
       filter(year %in% input$year, 
              market %in% input$mkt,
              province %in% input$province,
@@ -464,7 +465,7 @@ server <- function(input, output, session) {
   hospital_data <- eventReactive(contribution_data(), {
     ordering <- contribution_data()$ordering
     
-    data <- summary() %>% 
+    data <- raw_data %>% 
       filter(year %in% input$year, 
              market %in% input$mkt,
              province %in% input$province,
@@ -529,7 +530,7 @@ server <- function(input, output, session) {
   
   ##-- for total potential and share
   share_data <- eventReactive(input$goButton, {
-    data <- summary() %>% 
+    data <- raw_data %>% 
       filter(year %in% input$year, 
              market %in% input$mkt,
              province %in% input$province,
@@ -680,7 +681,7 @@ server <- function(input, output, session) {
   
   ##-- for city potential and share
   city_data <- eventReactive(contribution_data(), {
-    data <- summary() %>% 
+    data <- raw_data %>% 
       filter(year %in% input$year, 
              market %in% input$mkt,
              province %in% input$province,
@@ -840,7 +841,7 @@ server <- function(input, output, session) {
   
   ##-- for county potential and share
   county_data <- eventReactive(contribution_data(), {
-    data <- summary() %>% 
+    data <- raw_data %>% 
       filter(year %in% input$year, 
              market %in% input$mkt,
              province %in% input$province,
@@ -1001,7 +1002,7 @@ server <- function(input, output, session) {
   ##-- for potential growth
   growth_data <- eventReactive(contribution_data(), {
     if (input$year == 2016) return(NULL)
-    data <- summary() %>% 
+    data <- raw_data %>% 
       filter(year %in% c(as.numeric(input$year)-1, input$year), 
              market %in% input$mkt,
              province %in% input$province,
@@ -1137,4 +1138,14 @@ server <- function(input, output, session) {
     })
   })
   
+  ##-- share summary table
+  share_table_data <- eventReactive(input$goButton, {
+    data <- raw_data %>% 
+      filter(year %in% input$year,
+             market %in% input$mkt,
+             province %in% input$province,
+             channel %in% c("City", "County", "CHC")) %>% 
+      select()
+    
+  })
 }

@@ -5,7 +5,8 @@ ui <- dashboardPage(
   dashboardSidebar(
     tags$head(includeCSS('./www/fix_siderbar.css')),
     collapsed = FALSE,
-    fluidRow(column(12, fileInput('summary', 'Please Upload the Raw Data'))),
+    # fluidRow(column(12, fileInput('summary', 'Please Upload the Raw Data'))),
+    br(),
     fluidRow(tags$div(
       tags$div(column(1, actionButton("goButton", "Go!")),
                style = "display:inline-block;margin-down: 1px;vertical-align:middle"),
@@ -13,40 +14,15 @@ ui <- dashboardPage(
       tags$style(".skin-blue .sidebar a { color: #444; }"),
       
       tags$div(column(#offset = 1, 
-                      2,
-                      downloadButton(outputId = "downloadData", 
-                                     label = "Download")),
-               style = "display:inline-block;margin-down: 1px;vertical-align:middle"))),
-
-    # conditionalPanel(condition="input.tabselected==2", 
-    #                  selectInput(
-    #                    "top2",
-    #                    "Top Brand",
-    #                    c(
-    #                      "zero" = 0,
-    #                      "three" = 3,
-    #                      "five" = 5,
-    #                      "ten" = 10,
-    #                      "All" = 100000
-    #                    ),
-    #                    selected = 10
-    #                  )),
-    # 
-    # conditionalPanel(condition="input.tabselected==3", 
-    #                  selectInput(
-    #                    "top3",
-    #                    "Top Brand",
-    #                    c(
-    #                      "zero" = 0,
-    #                      "three" = 3,
-    #                      "five" = 5,
-    #                      "ten" = 10,
-    #                      "All" = 100000
-    #                    ),
-    #                    selected = 10
-    #                  )),
+        2,
+        downloadButton(outputId = "downloadData", 
+                       label = "Download")),
+        style = "display:inline-block;margin-down: 1px;vertical-align:middle"))),
     
-    selectInput("year", "Year", "", multiple = TRUE),
+    conditionalPanel(condition = "input.tabselected == 1",
+                     selectInput("year", "Year", "", multiple = TRUE)),
+    conditionalPanel(condition = "input.tabselected == 2",
+                     selectInput("channel", "Channel", "", multiple = TRUE)),
     selectInput("mkt", "Market", "", multiple = TRUE),
     selectInput("province", "Province", "", multiple = TRUE)
   ),
@@ -65,31 +41,31 @@ ui <- dashboardPage(
                      
                      # fluidRow(column(3, uiOutput("sub_cat_ui"))),
                      # fluidRow(
-                       column(width = 4,
-                              # offset = 1,
-                              div(DT::dataTableOutput("summary_table"), 
-                                  style = "font-size:90%")),
-                       column(width = 3,
-                              offset = 1,
-                              div(DT::dataTableOutput("summary_table1"),
-                                  style = "font-size:90%"),
-                              br(),
-                              div(plotlyOutput("summary_bar1", height = "180px"), 
-                                  style = "font-size:90%")
-                              ),
-                       
-                       column(width = 2,
-                              offset = 1,
-                              div(DT::dataTableOutput("summary_table2"),
-                                  style = "font-size:90%"),
-                              br(),
-                              div(plotlyOutput("summary_bar2", height = "180px"), 
-                                  style = "font-size:90%")
-                              )
-                       # style = "height:200px"
-                       # )
+                     column(width = 4,
+                            # offset = 1,
+                            div(DT::dataTableOutput("summary_table"), 
+                                style = "font-size:90%")),
+                     column(width = 3,
+                            offset = 1,
+                            div(DT::dataTableOutput("summary_table1"),
+                                style = "font-size:90%"),
+                            br(),
+                            div(plotlyOutput("summary_bar1", height = "180px"), 
+                                style = "font-size:90%")
+                     ),
+                     
+                     column(width = 2,
+                            offset = 1,
+                            div(DT::dataTableOutput("summary_table2"),
+                                style = "font-size:90%"),
+                            br(),
+                            div(plotlyOutput("summary_bar2", height = "180px"), 
+                                style = "font-size:90%")
                      )
-                 ),
+                     # style = "height:200px"
+                     # )
+                 )
+               ),
                
                fluidRow(
                  box(
@@ -116,9 +92,9 @@ ui <- dashboardPage(
                    br(),
                    div(plotlyOutput("channel_distribution_current_potential_by_city", height = "200px"),
                        style = "font-size:90%")
-                   )
-                 ),
-                   
+                 )
+               ),
+               
                fluidRow(
                  box(
                    title = "Channel Distribuion of Hospital Counts by City", 
@@ -224,234 +200,63 @@ ui <- dashboardPage(
                )
       ),
       
-      tabPanel(strong("Corporation"), value=2,
+      tabPanel(strong("Segmentation Statistics"), value=2,
                
                br(),
                fluidRow(
-                 box(title = "China Market Summary Value(RMB)",
+                 box(title = "Quadrant Table",
+                     status = "primary",
+                     solidHeader = TRUE,
+                     collapsible = FALSE,
                      width = 12,
-                     solidHeader = TRUE,
-                     status = "primary",
-                     # Dynamic valueBoxes to show the KPIs
-                     fluidRow(column(3, uiOutput("sub_cat_c_ui"))),
-                     fluidRow(
-                       column(width = 6,
-                              offset = 1,
-                              div(DT::dataTableOutput("summary_table_c"), style = "font-size:90%")),
-                       column(width = 3,
-                              offset = 1,
-                              div(DT::dataTableOutput("summary_table1_c"), style = "font-size:90%"))
-
-                     )
+                     
+                     column(8,
+                            align = "center",
+                            div(
+                              column(12,
+                                     align = "center",
+                                     div(numericInput("potential_div", label = "2020 Market Potential(City+CHC, %)",
+                                                      value = 95, min = 0, max = 100, width = "250px"),
+                                         style = "display:inline-block;")),
+                              column(6,
+                                     div(DT::dataTableOutput("oppotunity"),
+                                         style = "font-size:90%; height:250px;")),
+                              column(6,
+                                     div(DT::dataTableOutput("defend"),
+                                         style = "font-size:90%; height:250px;")),
+                              column(6,
+                                     div(DT::dataTableOutput("broad"),
+                                         style = "font-size:90%; height:250px;")),
+                              column(6,
+                                     div(DT::dataTableOutput("top"),
+                                         style = "font-size:90%; height:250px;")),
+                              column(12,
+                                     align = "center",
+                                     div(actionButton("refresh", label = "Refresh", width = "200px"),
+                                         style = "display:inline-block;")),
+                              style = "height:400px;"
+                            )),
+                     column(4,
+                            align = "center",
+                            div(numericInput("share_div", label = "Share(TTH/Molecule, %)", value = 95, min = 0, max = 100, width = "250px"),
+                                style = "text-align:center; margin-top:250px; display:inline-block; height:400px;"))
                  )
                ),
                
                fluidRow(
                  box(
-                   title = "Market Trend Performance", status = "primary", solidHeader = TRUE,
+                   title = "Details of Potential and Share",
+                   status = "primary",
+                   solidHeader = TRUE,
                    collapsible = FALSE,
                    width = 12,
-                   fluidRow(
-                     br(),
-                     column(3, 
-                            materialSwitch(inputId = "bp_p_c", 
-                                           label = "Corporation Performance",
-                                           status = "primary", 
-                                           right = TRUE,
-                                           value = TRUE)
-                     ),
-                     column(3, 
-                            materialSwitch(inputId = "rpp_p_c", 
-                                           label = "Region&Province Performance",
-                                           status = "primary", 
-                                           right = TRUE,
-                                           value = FALSE)
-                     )
-                   ),
-                   
-                   fluidRow(
-                     br(),
-                     column(3, uiOutput("sub_top_c_ui")),
-                     column(3, uiOutput("sub_measure_c_ui")),
-                     column(3, uiOutput("sub_index_c_ui")),
-                     column(3, uiOutput("sub_region_c_ui"))
-                   ),
-                   
-                   fluidRow(column(12,
-                                   checkboxInput("label_c",
-                                                 "Show Data Labels",
-                                                 value = FALSE,
-                                                 width = NULL))),
-                 
-                   fluidRow(tags$div(
-                     
-                     tags$div(
-                       column(9, downloadButton(outputId = "downloadData_c",
-                                                label = "Download Plot Data"))
-                     ),
-                     
-                     tags$div(
-                       column(3, 
-                              downloadButton(outputId = "downloadData_c1", 
-                                             label = "Download Plot Data")),
-                       
-                       style = "display:inline-block;margin-down: 1px;vertical-align:middle"))),
-                   br(),
-                   fluidRow(column(6, plotlyOutput("chart_c", width = "80%", height = "550px")),
-                            column(6, plotlyOutput("bar_chart_c", width = "80%", height = "550px")))
-                   # fluidRow(
-                   #   br(),
-                   #   tags$div(
-                   #     column(9,
-                   #            downloadButton("downloadPlot_c", "Download Plot"))),
-                   #   tags$div(
-                   #     column(3,
-                   #            downloadButton("downloadPlot_c1", "Download Plot")),
-                   #     style = "display:inline-block;margin-down: 1px;vertical-align:middle"
-                   #   )
-                   #   
-                   # )
-                   
-                   
-                   
+                   div(DT::dataTableOutput("detail"),
+                       style = "font-size:90%")
                  )
-               ),
-               
-               fluidRow( 
-                 br(),
-                 box(
-                   title = "2, CHPA Data", status = "primary", solidHeader = TRUE,
-                   collapsible = FALSE,
-                   width = 12,
-                   br(),
-                   fluidRow(column(12, div(DT::dataTableOutput("contents_c"), style = "font-size:80%")))
-                 ))
-               
-             
-      ),
-      tabPanel(strong("Molecule"), value=3,
-               fluidRow(
-                 br(),
-                 box(title = "China Market Summary Value(RMB)",
-                     width = 12, 
-                     solidHeader = TRUE,
-                     status = "primary",
-                     # Dynamic valueBoxes to show the KPIs
-                     fluidRow(
-                       column(width = 6,
-                              offset = 1,
-                              div(DT::dataTableOutput("summary_table_m"), style = "font-size:90%")),
-                       column(width = 3,
-                              offset = 1,
-                              div(DT::dataTableOutput("summary_table1_m"), style = "font-size:90%"))
-                       
-                     )
-                 )
-               ),
-               
-               fluidRow(
-                 box(
-                   title = "Market Trend Performance", status = "primary", solidHeader = TRUE,
-                   collapsible = FALSE,
-                   width = 12,
-                   # fluidRow(
-                   #   br(),
-                   #   column(3, 
-                   #          materialSwitch(inputId = "bp_p_m", 
-                   #                         label = "Molecule Performance",
-                   #                         status = "primary", 
-                   #                         right = TRUE,
-                   #                         value = TRUE)
-                   #   ),
-                   #   column(3, 
-                   #          materialSwitch(inputId = "rpp_p_m", 
-                   #                         label = "Region&Province Performance",
-                   #                         status = "primary", 
-                   #                         right = TRUE,
-                   #                         value = FALSE)
-                   #   )
-                   # ),
-                   
-                   # fluidRow(
-                   #   br(),
-                   #   # column(3, selectInput("sub_top_m", "Top Molecule", choices = NULL,
-                   #   #                       multiple = TRUE)),
-                   #   # column(3, selectInput("sub_measure_m", "Measure", choices = NULL)),
-                   #   # column(3, selectInput("sub_index_m", "Index", choices = NULL)),
-                   #   # column(3, 
-                   #   #        selectInput("sub_region_m", "Region/Province", choices = NULL)
-                   #   #        # uiOutput("ui_sub_region_m")
-                   #   #        )
-                   #   
-                   #   column(3, uiOutput("sub_top_m_ui")),
-                   #   column(3, uiOutput("sub_measure_m_ui")),
-                   #   column(3, uiOutput("sub_index_m_ui")),
-                   #   column(3, uiOutput("sub_region_m_ui"))
-                   #   
-                   # ),
-                   
-                   fluidRow(column(12,
-                                   checkboxInput("label_m",
-                                                 "Show Data Labels",
-                                                 value = FALSE,
-                                                 width = NULL))),
-                   fluidRow(tags$div(
-                     
-                     tags$div(
-                       column(9, downloadButton(outputId = "downloadData_m",
-                                                label = "Download Plot Data"))
-                     ),
-                     
-                     tags$div(
-                       column(3, 
-                              downloadButton(outputId = "downloadData_m1", 
-                                             label = "Download Plot Data")),
-                       
-                       style = "display:inline-block;margin-down: 1px;vertical-align:middle"))),
-                   br(),
-                   
-                   # fluidRow(
-                   #   column(offset = 9, 
-                   #          3, 
-                   #          downloadButton(outputId = "downloadData_m", 
-                   #                         label = "Download Plot Data"))
-                   # ),
-                   fluidRow(column(6, plotlyOutput("chart_m", width = "80%", height = "550px")),
-                            column(6, plotlyOutput("bar_chart_m", width = "80%", height = "550px"))),
-                   
-                   fluidRow(column(6, textOutput("caption")),
-                            column(6, textOutput("caption1")))
-                   
-                   # fluidRow(
-                   #   br(),
-                   #   tags$div(
-                   #     column(9,
-                   #            downloadButton("downloadPlot_m", "Download Plot"))),
-                   #   tags$div(
-                   #     column(3,
-                   #            downloadButton("downloadPlot_m1", "Download Plot")),
-                   #     style = "display:inline-block;margin-down: 1px;vertical-align:middle"
-                   #   )
-                   #   
-                   # )
-                 )
-               ),
-               
-               fluidRow( 
-                 br(),
-                 box(
-                   title = "CHPA Data", status = "primary", solidHeader = TRUE,
-                   collapsible = FALSE,
-                   width = 12,
-                   br(),
-                   fluidRow(column(12, div(DT::dataTableOutput("contents_m"), style = "font-size:80%")))
-                 ))
-               
-               
-  
+               )
       ),
       id = "tabselected"
     )
   )
-    
+  
 )
