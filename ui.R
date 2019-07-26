@@ -7,6 +7,15 @@ ui <- dashboardPage(
     collapsed = FALSE,
     # fluidRow(column(12, fileInput('summary', 'Please Upload the Raw Data'))),
     br(),
+    conditionalPanel(condition = "input.tabselected == 1",
+                     selectInput("year", "Year", choices = "", multiple = TRUE)),
+    conditionalPanel(condition = "input.tabselected == 2",
+                     selectInput("channel", "Channel", choices = c("City" = "city", "County" = "county"), selected = "city", multiple = TRUE)),
+    selectInput("mkt", "Market", choices = "", multiple = TRUE),
+    selectInput("province", "Province", choices = "", multiple = TRUE),
+    selectInput("chc", "Contain CHC", choices = c("Yes" = "yes", "No" = "no"), selected = "yes", multiple = FALSE),
+    
+    br(),
     fluidRow(tags$div(
       tags$div(column(1, actionButton("goButton", "Go!")),
                style = "display:inline-block;margin-down: 1px;vertical-align:middle"),
@@ -17,14 +26,7 @@ ui <- dashboardPage(
         2,
         downloadButton(outputId = "downloadData", 
                        label = "Download")),
-        style = "display:inline-block;margin-down: 1px;vertical-align:middle"))),
-    
-    conditionalPanel(condition = "input.tabselected == 1",
-                     selectInput("year", "Year", "", multiple = TRUE)),
-    conditionalPanel(condition = "input.tabselected == 2",
-                     selectInput("channel", "Channel", "", multiple = TRUE)),
-    selectInput("mkt", "Market", "", multiple = TRUE),
-    selectInput("province", "Province", "", multiple = TRUE)
+        style = "display:inline-block;margin-down: 1px;vertical-align:middle")))
   ),
   
   dashboardBody(
