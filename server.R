@@ -50,8 +50,8 @@ server <- function(input, output, session) {
   observeEvent(raw_data_final, {
     updateSelectInput(session,
                       "year",
-                      choices = sort(unique(raw_data_final$year)),
-                      selected = sort(unique(raw_data_final$year))[1])
+                      choices = sort(unique(raw_data_final$year), decreasing = TRUE),
+                      selected = sort(unique(raw_data_final$year), decreasing = TRUE)[1])
   })
   
   
@@ -66,8 +66,8 @@ server <- function(input, output, session) {
   observeEvent(raw_data_final, {
     updateSelectInput(session, 
                       "province",
-                      choices = sort(unique(raw_data_final$province)),
-                      selected = sort(unique(raw_data_final$province))[1])
+                      choices = c("全国", sort(unique(raw_data_final$province))),
+                      selected = "全国")
   })
   
   ##-- for summary tables and plots
@@ -1254,7 +1254,7 @@ server <- function(input, output, session) {
       filter(channel %in% input$channel,
              market %in% input$mkt,
              province %in% input$province) %>% 
-      select(city, terminal, potential_2018, potential_2020, potential_chc_2018, potential_chc_2020, 
+      select(city, channel, terminal, potential_2018, potential_2020, potential_chc_2018, potential_chc_2020, 
              chc_2020, chc_2018, molecule_2018, internal, share_mol) %>% 
       mutate(potential_con_2018 = potential_2018 / sum(potential_2018, na.rm = TRUE),
              potential_chc_con_2018 = potential_chc_2018 / sum(potential_chc_2018, na.rm = TRUE),

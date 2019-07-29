@@ -10,23 +10,24 @@ ui <- dashboardPage(
     conditionalPanel(condition = "input.tabselected == 1",
                      selectInput("year", "Year", choices = "", multiple = TRUE)),
     conditionalPanel(condition = "input.tabselected == 2",
-                     selectInput("channel", "Channel", choices = c("City" = "city", "County" = "county"), selected = "city", multiple = TRUE)),
-    selectInput("mkt", "Market", choices = "", multiple = TRUE),
+                     selectInput("channel", "Channel", choices = c("City" = "city", "County" = "county"), selected = "city", multiple = FALSE)),
+    selectInput("mkt", "Market", choices = "", multiple = FALSE),
     selectInput("province", "Province", choices = "", multiple = TRUE),
     selectInput("chc", "Contain CHC", choices = c("Yes" = "yes", "No" = "no"), selected = "yes", multiple = FALSE),
     
     br(),
     fluidRow(tags$div(
-      tags$div(column(1, actionButton("goButton", "Go!")),
+      tags$div(column(12, actionButton("goButton", "Go!", width = "200px")),
                style = "display:inline-block;margin-down: 1px;vertical-align:middle"),
       
-      tags$style(".skin-blue .sidebar a { color: #444; }"),
+      tags$style(".skin-blue .sidebar a { color: #444; }")
       
-      tags$div(column(#offset = 1, 
-        2,
-        downloadButton(outputId = "downloadData", 
-                       label = "Download")),
-        style = "display:inline-block;margin-down: 1px;vertical-align:middle")))
+      # tags$div(column(#offset = 1, 
+      #   2,
+      #   downloadButton(outputId = "downloadData", 
+      #                  label = "Download")),
+      #   style = "display:inline-block;margin-down: 1px;vertical-align:middle")
+      ))
   ),
   
   dashboardBody(
@@ -217,7 +218,7 @@ ui <- dashboardPage(
                             div(
                               column(12,
                                      align = "center",
-                                     div(numericInput("potential_div", label = "2020 Market Potential(City+CHC, %)",
+                                     div(numericInput("potential_div", label = "2020 Market Potential(%)",
                                                       value = 95, min = 0, max = 100, width = "250px"),
                                          style = "display:inline-block;")),
                               box(
