@@ -212,7 +212,7 @@ ui <- dashboardPage(
                      collapsible = FALSE,
                      width = 12,
                      
-                     column(8,
+                     column(6,
                             align = "center",
                             div(
                               column(12,
@@ -220,28 +220,71 @@ ui <- dashboardPage(
                                      div(numericInput("potential_div", label = "2020 Market Potential(City+CHC, %)",
                                                       value = 95, min = 0, max = 100, width = "250px"),
                                          style = "display:inline-block;")),
-                              column(6,
-                                     div(DT::dataTableOutput("oppotunity"),
-                                         style = "font-size:90%; height:250px;")),
-                              column(6,
-                                     div(DT::dataTableOutput("defend"),
-                                         style = "font-size:90%; height:250px;")),
-                              column(6,
-                                     div(DT::dataTableOutput("broad"),
-                                         style = "font-size:90%; height:250px;")),
-                              column(6,
-                                     div(DT::dataTableOutput("top"),
-                                         style = "font-size:90%; height:250px;")),
+                              box(
+                                title = "Opportunistic",
+                                status = "primary",
+                                solidHeader = TRUE,
+                                collapsible = FALSE,
+                                width = 6,
+                                style = "background:#DAEEF3; height:250px;",
+                                div(DT::dataTableOutput("opportunistic"),
+                                    style = "font-size:90%;")
+                              ),
+                              # column(6,
+                              #        div(DT::dataTableOutput("oppotunity"),
+                              #            style = "font-size:90%; height:250px;")),
+                              box(
+                                title = "Defend",
+                                status = "primary",
+                                solidHeader = TRUE,
+                                collapsible = FALSE,
+                                width = 6,
+                                style = "background:#EBF1DE; height:250px;",
+                                div(DT::dataTableOutput("defend"),
+                                    style = "font-size:90%;")
+                              ),
+                              # column(6,
+                              #        div(DT::dataTableOutput("defend"),
+                              #            style = "font-size:90%; height:250px;")),
+                              box(
+                                title = "Broad Coverage",
+                                status = "primary",
+                                solidHeader = TRUE,
+                                collapsible = FALSE,
+                                width = 6,
+                                style = "background:#EBF1DE; height:250px;",
+                                div(DT::dataTableOutput("broad"),
+                                    style = "font-size:90%;")
+                              ),
+                              # column(6,
+                              #        div(DT::dataTableOutput("broad"),
+                              #            style = "font-size:90%; height:250px;")),
+                              box(
+                                title = "Top Priority",
+                                status = "primary",
+                                solidHeader = TRUE,
+                                collapsible = FALSE,
+                                width = 6,
+                                style = "background:#DAEEF3; height:250px;",
+                                div(DT::dataTableOutput("top"),
+                                    style = "font-size:90%;")
+                              ),
+                              # column(6,
+                              #        div(DT::dataTableOutput("top"),
+                              #            style = "font-size:90%; height:250px;")),
                               column(12,
                                      align = "center",
                                      div(actionButton("refresh", label = "Refresh", width = "200px"),
                                          style = "display:inline-block;")),
                               style = "height:400px;"
                             )),
-                     column(4,
+                     column(2,
                             align = "center",
-                            div(numericInput("share_div", label = "Share(TTH/Molecule, %)", value = 95, min = 0, max = 100, width = "250px"),
-                                style = "text-align:center; margin-top:250px; display:inline-block; height:400px;"))
+                            div(numericInput("share_div", label = "Share(TTH/Molecule, %)", value = 50, min = 0, max = 100, width = "250px"),
+                                style = "text-align:center; margin-top:330px; display:inline-block; height:400px;")),
+                     column(4,
+                            div(plotlyOutput("scatter", height = "700px"),
+                                style = "font-size:90%;"))
                  )
                ),
                
@@ -253,7 +296,7 @@ ui <- dashboardPage(
                    collapsible = FALSE,
                    width = 12,
                    div(DT::dataTableOutput("detail"),
-                       style = "font-size:90%")
+                       style = "font-size:90%; overflow-x:scroll;")
                  )
                )
       ),

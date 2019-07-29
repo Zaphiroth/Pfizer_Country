@@ -5,11 +5,15 @@ load("./data/raw_data_final.RData")
 load("./data/raw_data_forecast.RData")
 ######################## load function graph1 ##################################
 
-source("./functions/99_graph1_corp.R")
+source("./functions/quadrant_table.R")
+
+######################## load function graph1 ##################################
+
+# source("./functions/99_graph1_corp.R")
 
 ######################## load function graph1m #################################
 
-source("./functions/99_graph1_corp_m.R")
+# source("./functions/99_graph1_corp_m.R")
 
 ######################## shiny server core code#################################
 
@@ -37,6 +41,7 @@ server <- function(input, output, session) {
       if_chc <- c("City", "County")
     } else {
       if_chc <- NULL
+      stop("if_chc Error.")
     }
     
     if_chc
@@ -658,7 +663,8 @@ server <- function(input, output, session) {
       ordering = contribution_data()$ordering
       
       plot_data <- share_data() %>% 
-        mutate(city = factor(city, levels = ordering))
+        mutate(city = factor(city, levels = ordering)) %>% 
+        arrange(city)
       
       plot_ly(hoverinfo = "name+x+y") %>% 
         add_bars(x = plot_data$city,
@@ -740,7 +746,8 @@ server <- function(input, output, session) {
       data <- bind_rows(data,
                         data.frame(city = contribution_data()$ordering,
                                    value = 0,
-                                   internal.sales = 0))
+                                   internal.sales = 0,
+                                   stringsAsFactors = FALSE))
     }
     
     data1 <- data %>% 
@@ -822,7 +829,8 @@ server <- function(input, output, session) {
       ordering <- contribution_data()$ordering
       
       plot_data <- city_data() %>% 
-        mutate(city = factor(city, levels = ordering))
+        mutate(city = factor(city, levels = ordering)) %>% 
+        arrange(city)
       
       plot_ly(hoverinfo = "name+x+y") %>% 
         add_bars(x = plot_data$city,
@@ -904,7 +912,8 @@ server <- function(input, output, session) {
       data <- bind_rows(data,
                         data.frame(city = setdiff(contribution_data()$ordering, data$city),
                                    value = 0,
-                                   internal.sales = 0))
+                                   internal.sales = 0,
+                                   stringsAsFactors = FALSE))
     }
     
     data1 <- data %>% 
@@ -985,7 +994,8 @@ server <- function(input, output, session) {
       ordering <- contribution_data()$ordering
       
       plot_data <- county_data() %>% 
-        mutate(city = factor(city, levels = ordering))
+        mutate(city = factor(city, levels = ordering)) %>% 
+        arrange(city)
       
       plot_ly(hoverinfo = "name+x+y") %>% 
         add_bars(x = plot_data$city,
@@ -1165,7 +1175,8 @@ server <- function(input, output, session) {
       ordering <- contribution_data()$ordering
       
       plot_data <- growth_data() %>% 
-        mutate(city = factor(city, levels = ordering))
+        mutate(city = factor(city, levels = ordering)) %>% 
+        arrange(city)
       
       plot_ly(hoverinfo = "name+x+y") %>% 
         add_bars(x = plot_data$city,
@@ -1204,9 +1215,14 @@ server <- function(input, output, session) {
     })
   })
   
-  ##-- share summary table
-  detail_data <- eventReactive(input$goButton, {
+  ##-- detail
+  detail_data <- eventReactive(input$refresh, {
+    if (is.null(input$channel) | is.null(input$mkt) | is.null(input$province) | 
+        is.null(input$chc) | is.null(input$potential_div) | is.null(input$share_div))
+      return(NULL)
+    
     data <- raw_data_forecast %>% 
+      mutate(channel = tolower(channel)) %>% 
       select("province", "city", "channel", "market",
              "terminal" = "terminal.",
              "potential_2020" = "x2020.city",
@@ -1217,32 +1233,53 @@ server <- function(input, output, session) {
              "chc_2018" = "x2018.chc",
              "molecule_2018" = "molecule_sales.2018",
              "internal" = "tth.2018") %>% 
+      mutate(chc_2020 = gsub(",", "", chc_2020),
+             chc_2020 = ifelse(chc_2020 == "-",
+                               0,
+                               chc_2020),
+             chc_2020 = as.numeric(chc_2020),
+             chc_2018 = gsub(",", "", chc_2018),
+             chc_2018 = ifelse(chc_2018 == "-",
+                               0,
+                               chc_2018),
+             chc_2018 = as.numeric(chc_2018),
+             internal = gsub(",", "", internal),
+             internal = ifelse(internal == "-",
+                               0,
+                               internal),
+             internal = as.numeric(internal)) %>% 
       mutate(share_pot = internal / potential_2018,
              share_pot_chc = internal / potential_chc_2018,
-             share_mol = internal / molecule_2018)
-    
-    data
-  })
-  
-  quadrant_data <- reactive({
-    if (is.null(detail_data()) | is.null(input$channel) | is.null(input$mkt) | is.null(input$province) | 
-        is.null(input$potential_div) | is.null(input$share_div))
-      return(NULL)
-    
-    data <- detail_data() %>% 
+             share_mol = internal / molecule_2018) %>% 
       filter(channel %in% input$channel,
              market %in% input$mkt,
              province %in% input$province) %>% 
-      select(city, channel, terminal, potential_2018, potential_chc_2018, 
-             internal, share_pot, share_pot_chc, share_mol) %>% 
-      mutate(potential_con = potential_2018 / sum(potential_2018, na.rm = TRUE),
-             potential_chc_con = potential_chc_2018 / sum(potential_chc_2018, na.rm = TRUE),
-             internal_con = internal / sum(internal, na.rm = TRUE)) %>% 
-      arrange(-potential_con) %>% 
-      mutate(potential_con_cum = cumsum(potential_con)) %>% 
-      mutate(segment = ifelse(potential_con_cum <= as.numeric(input$potential_div)/100 & share_mol >= input$share_div/100,
+      select(city, terminal, potential_2018, potential_2020, potential_chc_2018, potential_chc_2020, 
+             chc_2020, chc_2018, molecule_2018, internal, share_mol) %>% 
+      mutate(potential_con_2018 = potential_2018 / sum(potential_2018, na.rm = TRUE),
+             potential_chc_con_2018 = potential_chc_2018 / sum(potential_chc_2018, na.rm = TRUE),
+             potential_con_2020 = potential_2020 / sum(potential_2020, na.rm = TRUE),
+             potential_chc_con_2020 = potential_chc_2020 / sum(potential_chc_2020, na.rm = TRUE),
+             internal_con = internal / sum(internal, na.rm = TRUE))
+    
+    if (input$chc == "no") {
+      data1 <- data %>% 
+        arrange(-potential_con_2020) %>% 
+        mutate(potential_con_cum = cumsum(potential_con_2020))
+      
+    } else if (input$chc == "yes") {
+      data1 <- data %>% 
+        arrange(-potential_chc_con_2020) %>% 
+        mutate(potential_con_cum = cumsum(potential_chc_con_2020))
+      
+    } else {
+      stop("Detail CHC Error.")
+    }
+    
+    data2 <- data1 %>% 
+      mutate(segment = ifelse(potential_con_cum > as.numeric(input$potential_div)/100 & share_mol >= input$share_div/100,
                               1,
-                              ifelse(potential_con_cum > as.numeric(input$potential_div)/100 & share_mol >= input$share_div/100,
+                              ifelse(potential_con_cum <= as.numeric(input$potential_div)/100 & share_mol >= input$share_div/100,
                                      2,
                                      ifelse(potential_con_cum > as.numeric(input$potential_div)/100 & share_mol < input$share_div/100,
                                             3,
@@ -1250,10 +1287,343 @@ server <- function(input, output, session) {
                                                    4,
                                                    0)))))
     
-    data
+    data2
   })
   
+  output$opportunistic <- renderDT({
+    if (is.null(detail_data())) return(NULL)
+    input$refresh
+    isolate({
+      table_data <- quadrant(detail_data(), seg = 1, chc = input$chc)
+      
+      DT::datatable(
+        table_data,
+        rownames = FALSE,
+        colnames = NULL,
+        options = list(
+          columnDefs = list(
+            list(className = "dt-left",
+                 targets = 0),
+            list(className = "dt-center",
+                 targets = 1)
+          ),
+          # initComplete = JS(
+          #   "function(settings, json) {",
+          #   "$(this.api().table().header()).css({'background-color': '#008F91', 'color': '#fff'});",
+          #   "}"
+          # ),
+          paging = FALSE,
+          scrollX = FALSE,
+          searching = FALSE,
+          ordering = FALSE,
+          pageLength = 6,
+          lengthChange = FALSE,
+          bInfo = FALSE
+        )
+      ) %>% 
+        formatStyle(
+          c("key"),
+          fontWeight = "bold"
+        ) %>% 
+        formatStyle(
+          c("key", "value"),
+          backgroundColor = "#DAEEF3"
+        )
+    })
+  })
   
+  output$defend <- renderDT({
+    if (is.null(detail_data())) return(NULL)
+    input$refresh
+    isolate({
+      table_data <- quadrant(detail_data(), seg = 2, chc = input$chc)
+      
+      DT::datatable(
+        table_data,
+        rownames = FALSE,
+        colnames = NULL,
+        options = list(
+          columnDefs = list(
+            list(className = "dt-left",
+                 targets = 0),
+            list(className = "dt-center",
+                 targets = 1)
+          ),
+          # initComplete = JS(
+          #   "function(settings, json) {",
+          #   "$(this.api().table().header()).css({'background-color': '#008F91', 'color': '#fff'});",
+          #   "}"
+          # ),
+          paging = FALSE,
+          scrollX = FALSE,
+          searching = FALSE,
+          ordering = FALSE,
+          pageLength = 6,
+          lengthChange = FALSE,
+          bInfo = FALSE
+        )
+      ) %>% 
+        formatStyle(
+          c("key"),
+          fontWeight = "bold"
+        ) %>% 
+        formatStyle(
+          c("key", "value"),
+          backgroundColor = "#EBF1DE"
+        )
+    })
+  })
+  
+  output$broad <- renderDT({
+    if (is.null(detail_data())) return(NULL)
+    input$refresh
+    isolate({
+      table_data <- quadrant(detail_data(), seg = 3, chc = input$chc)
+      
+      DT::datatable(
+        table_data,
+        rownames = FALSE,
+        colnames = NULL,
+        options = list(
+          columnDefs = list(
+            list(className = "dt-left",
+                 targets = 0),
+            list(className = "dt-center",
+                 targets = 1)
+          ),
+          # initComplete = JS(
+          #   "function(settings, json) {",
+          #   "$(this.api().table().header()).css({'background-color': '#008F91', 'color': '#fff'});",
+          #   "}"
+          # ),
+          paging = FALSE,
+          scrollX = FALSE,
+          searching = FALSE,
+          ordering = FALSE,
+          pageLength = 6,
+          lengthChange = FALSE,
+          bInfo = FALSE
+        )
+      ) %>% 
+        formatStyle(
+          c("key"),
+          fontWeight = "bold"
+        ) %>% 
+        formatStyle(
+          c("key", "value"),
+          backgroundColor = "#EBF1DE"
+        )
+    })
+  })
+  
+  output$top <- renderDT({
+    if (is.null(detail_data())) return(NULL)
+    input$refresh
+    isolate({
+      table_data <- quadrant(detail_data(), seg = 4, chc = input$chc)
+      
+      DT::datatable(
+        table_data,
+        rownames = FALSE,
+        colnames = NULL,
+        options = list(
+          columnDefs = list(
+            list(className = "dt-left",
+                 targets = 0),
+            list(className = "dt-center",
+                 targets = 1)
+          ),
+          # initComplete = JS(
+          #   "function(settings, json) {",
+          #   "$(this.api().table().header()).css({'background-color': '#008F91', 'color': '#fff'});",
+          #   "}"
+          # ),
+          paging = FALSE,
+          scrollX = FALSE,
+          searching = FALSE,
+          ordering = FALSE,
+          pageLength = 6,
+          lengthChange = FALSE,
+          bInfo = FALSE
+        )
+      ) %>% 
+        formatStyle(
+          c("key"),
+          fontWeight = "bold"
+        ) %>% 
+        formatStyle(
+          c("key", "value"),
+          backgroundColor = "#DAEEF3"
+        )
+    })
+  })
+  
+  output$scatter <- renderPlotly({
+    if (is.null(detail_data()) | is.null(input$potential_div) | is.null(input$share_div)) return(NULL)
+    input$refresh
+    isolate({
+      plot_data <- detail_data()
+      
+      p <- plot_ly(hoverinfo = "name+x+y")
+      
+      for (i in unique(plot_data$city)) {
+        p <- p %>% 
+          add_trace(x = plot_data$potential_con_cum[which(plot_data$city == i)],
+                    y = plot_data$share_mol[which(plot_data$city == i)],
+                    type = "scatter",
+                    mode = "markers",
+                    name = i,
+                    color = I("#2C5D98"))
+      }
+      
+      p <- p %>% 
+        add_segments(x = 0,
+                     xend = 1,
+                     y = input$share_div/100,
+                     yend = input$share_div/100,
+                     color = I("#FF0000")) %>% 
+        add_segments(x = input$potential_div/100,
+                     xend = input$potential_div/100,
+                     y = 0,
+                     yend = 1,
+                     color = I("#FF0000")) %>% 
+        layout(
+          showlegend = FALSE,
+          xaxis = list(
+            range = c(1, 0),
+            zeroline = FALSE,
+            showline = TRUE,
+            showgrid = TRUE,
+            title = "Cumulative of 2020 Market Potential",
+            mirror = "ticks"
+          ),
+          yaxis = list(
+            side = "right",
+            range = c(0, 1),
+            zeroline = FALSE,
+            showline = TRUE,
+            showgrid = TRUE,
+            title = "Share(TTH/Molecule)",
+            mirror = "ticks"
+          )
+        )
+      
+      p
+    })
+  })
+  
+  output$detail <- renderDT({
+    if (is.null(detail_data())) return(NULL)
+    input$refresh
+    isolate({
+      table_data <- detail_data() %>% 
+        mutate(segment = ifelse(segment == 1,
+                                "Opportunistic",
+                                ifelse(segment == 2,
+                                       "Defend",
+                                       ifelse(segment == 3,
+                                              "Broad Coverage",
+                                              ifelse(segment == 4,
+                                                     "Top Priority",
+                                                     0)))))
+      
+      if (input$chc == "no") {
+        total_data <- data.table(`City` = "Total",
+                                 `Type` = NA,
+                                 `Terminal#` = sum(table_data$terminal, na.rm = TRUE),
+                                 `Potential-2020` = sum(table_data$potential_2020, na.rm = TRUE),
+                                 `CHC Potential-2020` = sum(table_data$chc_2020, na.rm = TRUE),
+                                 `2020 Potential Con%` = 1,
+                                 `Potential-2018` = sum(table_data$potential_2018, na.rm = TRUE),
+                                 `CHC Potential-2018` = sum(table_data$chc_2018, na.rm = TRUE),
+                                 `2018 Potential Con%` = 1,
+                                 `2018 Molecule Sales` = sum(table_data$molecule_2018, na.rm = TRUE),
+                                 `Share%(TTH/Molecule)` = sum(table_data$internal, na.rm = TRUE) / sum(table_data$molecule_2018, na.rm = TRUE),
+                                 `Internal` = sum(table_data$internal, na.rm = TRUE),
+                                 stringsAsFactors = FALSE)
+        
+        table_data1 <- table_data %>% 
+          select("City" = "city",
+                 "Type" = "segment",
+                 "Terminal#" = "terminal",
+                 "Potential-2020" = "potential_2020",
+                 "CHC Potential-2020" = "chc_2020",
+                 "2020 Potential Con%" = "potential_con_2020",
+                 "Potential-2018" = "potential_2018",
+                 "CHC Potential-2018" = "chc_2018",
+                 "2018 Potential Con%" = "potential_con_2018",
+                 "2018 Molecule Sales" = "molecule_2018",
+                 "Share%(TTH/Molecule)" = "share_mol",
+                 "Internal" = "internal")
+        
+      } else if (input$chc == "yes") {
+        total_data <- data.table(`City` = "Total",
+                                 `Type` = NA,
+                                 `Terminal#` = sum(table_data$terminal, na.rm = TRUE),
+                                 `Potential-2020` = sum(table_data$potential_chc_2020, na.rm = TRUE),
+                                 `CHC Potential-2020` = sum(table_data$chc_2020, na.rm = TRUE),
+                                 `2020 Potential Con%` = 1,
+                                 `Potential-2018` = sum(table_data$potential_chc_2018, na.rm = TRUE),
+                                 `CHC Potential-2018` = sum(table_data$chc_2018, na.rm = TRUE),
+                                 `2018 Potential Con%` = 1,
+                                 `2018 Molecule Sales` = sum(table_data$molecule_2018, na.rm = TRUE),
+                                 `Share%(TTH/Molecule)` = sum(table_data$internal, na.rm = TRUE) / sum(table_data$molecule_2018, na.rm = TRUE),
+                                 `Internal` = sum(table_data$internal, na.rm = TRUE),
+                                 stringsAsFactors = FALSE)
+        
+        table_data1 <- table_data %>% 
+          select("City" = "city",
+                 "Type" = "segment",
+                 "Terminal#" = "terminal",
+                 "Potential-2020" = "potential_chc_2020",
+                 "CHC Potential-2020" = "chc_2020",
+                 "2020 Potential Con%" = "potential_chc_con_2020",
+                 "Potential-2018" = "potential_chc_2018",
+                 "CHC Potential-2018" = "chc_2018",
+                 "2018 Potential Con%" = "potential_chc_con_2018",
+                 "2018 Molecule Sales" = "molecule_2018",
+                 "Share%(TTH/Molecule)" = "share_mol",
+                 "Internal" = "internal")
+        
+      } else {
+        stop("Detail Table CHC Error.")
+      }
+      
+      table_data2 <- bind_rows(total_data, table_data1)
+      
+      DT::datatable(
+        table_data2,
+        rownames = FALSE,
+        options = list(
+          columnDefs = list(
+            list(className = "dt-center",
+                 targets = "_all")
+          ),
+          initComplete = JS(
+            "function(settings, json) {",
+            "$(this.api().table().header()).css({'background-color': '#008F91', 'color': '#fff'});",
+            "}"
+          ),
+          paging = FALSE,
+          scrollX = FALSE,
+          searching = FALSE,
+          ordering = FALSE,
+          pageLength = 5,
+          lengthChange = FALSE,
+          bInfo = FALSE
+        )
+      ) %>% 
+        formatStyle(
+          "City",
+          target = "row",
+          fontWeight = styleEqual("Total", "bold")
+        ) %>% 
+        formatPercentage(
+          c("2020 Potential Con%", "2018 Potential Con%", "Share%(TTH/Molecule)"),
+          digits = 2
+        )
+    })
+  })
   
   
   
