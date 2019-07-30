@@ -8,7 +8,7 @@ ui <- dashboardPage(
     # fluidRow(column(12, fileInput('summary', 'Please Upload the Raw Data'))),
     br(),
     conditionalPanel(condition = "input.tabselected == 1",
-                     selectInput("year", "Year", choices = "", multiple = TRUE)),
+                     selectInput("year", "Year", choices = "", multiple = FALSE)),
     conditionalPanel(condition = "input.tabselected == 2",
                      selectInput("channel", "Channel", choices = c("City" = "city", "County" = "county"), selected = "city", multiple = FALSE)),
     selectInput("mkt", "Market", choices = "", multiple = FALSE),

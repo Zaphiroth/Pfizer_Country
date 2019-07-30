@@ -70,10 +70,20 @@ server <- function(input, output, session) {
                       selected = "全国")
   })
   
+  province <- reactive({
+    if (is.null(input$province)) {
+      NULL
+    } else if (input$province == "全国") {
+      sort(unique(raw_data_final$province))
+    } else {
+      input$province
+    }
+  })
+  
   ##-- for summary tables and plots
   summary_data <- 
     eventReactive(input$goButton, {
-      all_data = expand.grid(省份 = input$province,
+      all_data = expand.grid(省份 = province(),
                                城市级别 = c("1线城市", "2线城市", "3线城市", 
                                         "4线城市", "5线城市", "Total"),
                                stringsAsFactors = FALSE) %>%
@@ -83,7 +93,7 @@ server <- function(input, output, session) {
       data <- raw_data_final %>%
         filter(year %in% input$year, 
                market %in% input$mkt,
-               province %in% input$province) %>%
+               province %in% province()) %>%
         select(省份 = province, 城市级别 = `city.tier`, 地级市数量 = `地级市by.tier`, 
                  市辖县数量 = `县by.tier`, 县级市数量 = `县级市by.tier`) %>%
         distinct() %>%
@@ -110,7 +120,7 @@ server <- function(input, output, session) {
       data3 <- raw_data_final %>%
         filter(year %in% input$year, 
                market %in% input$mkt,
-               province %in% input$province) %>%
+               province %in% province()) %>%
         select(省份 = province, 三级医院 = `三级.by.province`, 
                  二级医院 = `二级.by.province`, 
                  一级及以下 = `一级及其他.by.province`) %>%
@@ -124,7 +134,7 @@ server <- function(input, output, session) {
       data4 <- raw_data_final %>% 
         filter(year %in% input$year, 
                market %in% input$mkt,
-               province %in% input$province) %>% 
+               province %in% province()) %>% 
         select(`省份` = province,
                `县医院#` = county.hp.by.province,
                `城市医院#` = city.hp.by.province) %>% 
@@ -174,6 +184,10 @@ server <- function(input, output, session) {
           target = "row",
           color = styleEqual("Total", "#008F91"),
           fontWeight = styleEqual("Total", "bold")
+        ) %>% 
+        formatRound(
+          c("地级市数量", "市辖县数量","县级市数量"),
+          digits = 0
         )
     })
   })
@@ -206,7 +220,11 @@ server <- function(input, output, session) {
           lengthChange = FALSE,
           bInfo = FALSE
         )
-      )
+      ) %>% 
+        formatRound(
+          c("三级医院", "二级医院", "一级及以下"),
+          digits = 0
+        )
     })
   })
   
@@ -242,7 +260,11 @@ server <- function(input, output, session) {
           lengthChange = FALSE,
           bInfo = FALSE
         )
-      )
+      ) %>% 
+        formatRound(
+          c("县医院#", "城市医院#"),
+          digits = 0
+        )
     })
   })
   
@@ -276,7 +298,7 @@ server <- function(input, output, session) {
             showticklabels = FALSE,
             title = "",
             mirror = "ticks",
-            range = c(0, max(plot_data$value) * 1.2)
+            range = c(0, max(plot_data$value)*1.2)
           )
         )
     })
@@ -312,7 +334,7 @@ server <- function(input, output, session) {
             showticklabels = FALSE,
             title = "",
             mirror = "ticks",
-            range = c(0, max(plot_data$value) * 1.2)
+            range = c(0, max(plot_data$value)*1.2)
           )
         )
     })
@@ -320,12 +342,12 @@ server <- function(input, output, session) {
   
   ##-- for current potential contribution
   contribution_data <- eventReactive(input$goButton, {
-    if (is.null(input$year) | is.null(input$mkt) | is.null(input$province) | is.null(if_chc())) return(NULL)
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(if_chc())) return(NULL)
     
     data <- raw_data_final %>% 
       filter(year %in% input$year, 
              market %in% input$mkt,
-             province %in% input$province,
+             province %in% province(),
              channel %in% if_chc()) %>% 
       select(city, channel, value)
     
@@ -400,6 +422,11 @@ server <- function(input, output, session) {
           target = "row",
           color = styleEqual("Total", "#008F91"),
           fontWeight = styleEqual("Total", "bold")
+        ) %>% 
+        formatRound(
+          columns = TRUE,
+          digits = 2,
+          interval = 3
         )
     })
   })
@@ -436,7 +463,7 @@ server <- function(input, output, session) {
             showticklabels = FALSE,
             title = "",
             mirror = "ticks",
-            range = c(0, max(plot_data$value) * 1.2)
+            range = c(0, max(plot_data$value)*1.2)
           )
         )
     })
@@ -503,13 +530,13 @@ server <- function(input, output, session) {
   
   ##-- for hospital counts
   hospital_data <- eventReactive(contribution_data(), {
-    if (is.null(input$mkt) | is.null(input$province)) return(NULL)
+    if (is.null(input$mkt) | is.null(province())) return(NULL)
     
     ordering <- contribution_data()$ordering
     
     data <- raw_data_forecast %>% 
       filter(market %in% input$mkt,
-             province %in% input$province) %>% 
+             province %in% province()) %>% 
       select(city, channel, terminal.) %>% 
       distinct() %>% 
       dcast(city~channel, value.var = "terminal.")
@@ -572,18 +599,23 @@ server <- function(input, output, session) {
           target = "row",
           color = styleEqual("Total", "#008F91"),
           fontWeight = styleEqual("Total", "bold")
+        ) %>% 
+        formatRound(
+          columns = TRUE,
+          digits = 0,
+          interval = 3
         )
     })
   })
   
   ##-- for total potential and share
   share_data <- eventReactive(input$goButton, {
-    if (is.null(input$year) | is.null(input$mkt) | is.null(input$province) | is.null(if_chc())) return(NULL)
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(if_chc())) return(NULL)
     
     data <- raw_data_final %>% 
       filter(year %in% input$year, 
              market %in% input$mkt,
-             province %in% input$province,
+             province %in% province(),
              channel %in% if_chc()) %>% 
       select(city, value, internal.sales) %>% 
       group_by(city) %>% 
@@ -615,7 +647,9 @@ server <- function(input, output, session) {
       ordering <- contribution_data()$ordering
       
       table_data <- share_data() %>% 
-        mutate(`Share%` = paste0(`Share%` * 100, "%")) %>% 
+        mutate(`Total potential` = format(`Total potential`, digits = 2, big.interval = 3, big.mark = ","),
+               `TTH` = format(`TTH`, digits = 2, big.interval = 3, big.mark = ","),
+               `Share%` = paste0(`Share%`*100, "%")) %>% 
         select("city", "Total potential", "TTH", "Share%") %>% 
         melt(id.vars = "city") %>% 
         dcast(variable~city, value.var = "value") %>% 
@@ -690,7 +724,7 @@ server <- function(input, output, session) {
                   color = I("#E46C0A")) %>% 
         add_annotations(x = plot_data$city,
                         y = plot_data$`Share%`,
-                        text = paste0(plot_data$`Share%` * 100, "%"),
+                        text = paste0(plot_data$`Share%`*100, "%"),
                         xref = "x",
                         yref = "y2",
                         xanchor = "center",
@@ -714,7 +748,7 @@ server <- function(input, output, session) {
             showticklabels = FALSE,
             title = "",
             mirror = "ticks",
-            range = c(0, max(plot_data$`Total potential`, 0.01) * 1.2)
+            range = c(0, max(plot_data$`Total potential`, 0.01)*1.2)
           ),
           yaxis2 = list(
             overlaying = "y",
@@ -725,7 +759,7 @@ server <- function(input, output, session) {
             showticklabels = FALSE,
             title = "",
             mirror = "ticks",
-            range = c(0, max(plot_data$`Share%`, 0.001) * 1.2)
+            range = c(0, max(plot_data$`Share%`, 0.001)*1.2)
           )
         )
     })
@@ -733,12 +767,14 @@ server <- function(input, output, session) {
   
   ##-- for city potential and share
   city_data <- eventReactive(contribution_data(), {
-    if (is.null(input$year) | is.null(input$mkt) | is.null(input$province)) return(NULL)
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(contribution_data())) return(NULL)
+    
+    ordering <- contribution_data()$ordering
     
     data <- raw_data_final %>% 
       filter(year %in% input$year, 
              market %in% input$mkt,
-             province %in% input$province,
+             province %in% province(),
              channel %in% c("City")) %>% 
       select(city, value, internal.sales)
     
@@ -767,7 +803,8 @@ server <- function(input, output, session) {
                                       ifelse(variable == "share",
                                              "Share%",
                                              variable)))) %>% 
-      dcast(city~variable, value.var = "value")
+      dcast(city~variable, value.var = "value") %>% 
+      right_join(data.frame(city = ordering, stringsAsFactors = FALSE), by = c("city"))
     
     data1[is.na(data1)] <- 0
     
@@ -781,7 +818,9 @@ server <- function(input, output, session) {
       ordering <- contribution_data()$ordering
       
       table_data <- city_data() %>% 
-        mutate(`Share%` = paste0(`Share%` * 100, "%")) %>% 
+        mutate(`City hospitals potential` = format(`City hospitals potential`, digits = 2, big.interval = 3, big.mark = ","),
+               `TTH` = format(`TTH`, digits = 2, big.interval = 3, big.mark = ","),
+               `Share%` = paste0(`Share%`*100, "%")) %>% 
         select("city", "City hospitals potential", "TTH", "Share%") %>% 
         melt(id.vars = "city") %>% 
         dcast(variable~city, value.var = "value") %>% 
@@ -856,7 +895,7 @@ server <- function(input, output, session) {
                   color = I("#E46C0A")) %>% 
         add_annotations(x = plot_data$city,
                         y = plot_data$`Share%`,
-                        text = paste0(plot_data$`Share%` * 100, "%"),
+                        text = paste0(plot_data$`Share%`*100, "%"),
                         xref = "x",
                         yref = "y2",
                         xanchor = "center",
@@ -880,7 +919,7 @@ server <- function(input, output, session) {
             showticklabels = FALSE,
             title = "",
             mirror = "ticks",
-            range = c(0, max(plot_data$`City hospitals potential`, 0.01) * 1.2)
+            range = c(0, max(plot_data$`City hospitals potential`, 0.01)*1.2)
           ),
           yaxis2 = list(
             overlaying = "y",
@@ -891,7 +930,7 @@ server <- function(input, output, session) {
             showticklabels = FALSE,
             title = "",
             mirror = "ticks",
-            range = c(0, max(plot_data$`Share%`, 0.001) * 1.2)
+            range = c(0, max(plot_data$`Share%`, 0.001)*1.2)
           )
         )
     })
@@ -899,12 +938,14 @@ server <- function(input, output, session) {
   
   ##-- for county potential and share
   county_data <- eventReactive(contribution_data(), {
-    if (is.null(input$year) | is.null(input$mkt) | is.null(input$province)) return(NULL)
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(contribution_data())) return(NULL)
+    
+    ordering <- contribution_data()$ordering
     
     data <- raw_data_final %>% 
       filter(year %in% input$year, 
              market %in% input$mkt,
-             province %in% input$province,
+             province %in% province(),
              channel %in% c("County")) %>% 
       select(city, value, internal.sales)
     
@@ -933,7 +974,9 @@ server <- function(input, output, session) {
                                       ifelse(variable == "share",
                                              "Share%",
                                              variable)))) %>% 
-      dcast(city~variable, value.var = "value")
+      dcast(city~variable, value.var = "value") %>% 
+      right_join(data.frame(city = ordering, stringsAsFactors = FALSE), by = c("city"))
+    
     data1[is.na(data1)] <- 0
     
     data1
@@ -946,7 +989,9 @@ server <- function(input, output, session) {
       ordering <- contribution_data()$ordering
       
       table_data <- county_data() %>% 
-        mutate(`Share%` = paste0(`Share%` * 100, "%")) %>% 
+        mutate(`County hospitals potential` = format(`County hospitals potential`, digits = 2, big.interval = 3, big.mark = ","),
+               `TTH` = format(`TTH`, digits = 2, big.interval = 3, big.mark = ","),
+               `Share%` = paste0(`Share%`*100, "%")) %>% 
         select("city", "County hospitals potential", "TTH", "Share%") %>% 
         melt(id.vars = "city") %>% 
         dcast(variable~city, value.var = "value") %>% 
@@ -1021,7 +1066,7 @@ server <- function(input, output, session) {
                   color = I("#E46C0A")) %>% 
         add_annotations(x = plot_data$city,
                         y = plot_data$`Share%`,
-                        text = paste0(plot_data$`Share%` * 100, "%"),
+                        text = paste0(plot_data$`Share%`*100, "%"),
                         xref = "x",
                         yref = "y2",
                         xanchor = "center",
@@ -1045,7 +1090,7 @@ server <- function(input, output, session) {
             showticklabels = FALSE,
             title = "",
             mirror = "ticks",
-            range = c(0, max(plot_data$`County hospitals potential`, 0.01) * 1.2)
+            range = c(0, max(plot_data$`County hospitals potential`, 0.01)*1.2)
           ),
           yaxis2 = list(
             overlaying = "y",
@@ -1056,7 +1101,7 @@ server <- function(input, output, session) {
             showticklabels = FALSE,
             title = "",
             mirror = "ticks",
-            range = c(0, max(plot_data$`Share%`, 0.001) * 1.2)
+            range = c(0, max(plot_data$`Share%`, 0.001)*1.2)
           )
         )
     })
@@ -1065,12 +1110,12 @@ server <- function(input, output, session) {
   ##-- for potential growth
   growth_data <- eventReactive(contribution_data(), {
     if (input$year == 2016) return(NULL)
-    if (is.null(input$year) | is.null(input$mkt) | is.null(input$province) | is.null(if_chc())) return(NULL)
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(if_chc())) return(NULL)
     
     data <- raw_data_final %>% 
       filter(year %in% c(as.numeric(input$year)-1, as.numeric(input$year)), 
              market %in% input$mkt,
-             province %in% input$province,
+             province %in% province(),
              channel %in% if_chc()) %>% 
       select(city, channel, year, value) %>% 
       dcast(city+year~channel, value.var = "value")
@@ -1119,7 +1164,7 @@ server <- function(input, output, session) {
       ordering <- contribution_data()$ordering
       
       table_data <- growth_data() %>% 
-        mutate_if(is.numeric, function(x) {paste0(x * 100, "%")}) %>% 
+        mutate_if(is.numeric, function(x) {paste0(x*100, "%")}) %>% 
         melt(id.vars = "city") %>% 
         dcast(variable~city, value.var = "value") %>% 
         mutate(variable = ifelse(variable == "city_growth",
@@ -1181,14 +1226,14 @@ server <- function(input, output, session) {
       plot_ly(hoverinfo = "name+x+y") %>% 
         add_bars(x = plot_data$city,
                  y = plot_data$city_growth * 100,
-                 text = paste0(plot_data$city_growth * 100, "%"),
+                 text = paste0(plot_data$city_growth*100, "%"),
                  textposition = "outside",
                  type = "bar",
                  name = "城市医院",
                  color = I("#9BBB59")) %>% 
         add_bars(x = plot_data$city,
                  y = plot_data$county_growth * 100,
-                 text = paste0(plot_data$county_growth * 100, "%"),
+                 text = paste0(plot_data$county_growth*100, "%"),
                  textposition = "outside",
                  type = "bar",
                  name = "县",
@@ -1209,7 +1254,7 @@ server <- function(input, output, session) {
             ticksuffix = "%",
             title = "",
             mirror = "ticks",
-            range = c(0, max(plot_data$city_growth, plot_data$county_growth) * 120)
+            range = c(0, max(plot_data$city_growth, plot_data$county_growth)*120)
           )
         )
     })
@@ -1217,7 +1262,7 @@ server <- function(input, output, session) {
   
   ##-- detail
   detail_data <- eventReactive(input$refresh, {
-    if (is.null(input$channel) | is.null(input$mkt) | is.null(input$province) | 
+    if (is.null(input$channel) | is.null(input$mkt) | is.null(province()) | 
         is.null(input$chc) | is.null(input$potential_div) | is.null(input$share_div))
       return(NULL)
     
@@ -1253,7 +1298,7 @@ server <- function(input, output, session) {
              share_mol = internal / molecule_2018) %>% 
       filter(channel %in% input$channel,
              market %in% input$mkt,
-             province %in% input$province) %>% 
+             province %in% province()) %>% 
       select(city, channel, terminal, potential_2018, potential_2020, potential_chc_2018, potential_chc_2020, 
              chc_2020, chc_2018, molecule_2018, internal, share_mol) %>% 
       mutate(potential_con_2018 = potential_2018 / sum(potential_2018, na.rm = TRUE),
@@ -1621,6 +1666,11 @@ server <- function(input, output, session) {
         formatPercentage(
           c("2020 Potential Con%", "2018 Potential Con%", "Share%(TTH/Molecule)"),
           digits = 2
+        ) %>% 
+        formatRound(
+          c("Potential-2020", "CHC Potential-2020", "Potential-2018", "CHC Potential-2018", "2018 Molecule Sales", "Internal"),
+          digits = 0,
+          interval = 3
         )
     })
   })
