@@ -622,7 +622,7 @@ server <- function(input, output, session) {
       summarise(value = sum(value, na.rm = TRUE),
                 internal.sales = sum(internal.sales, na.rm = TRUE)) %>% 
       ungroup() %>% 
-      mutate(share = round(internal.sales / value, 3),
+      mutate(share = round(internal.sales/value, 3),
              value = round(value/1000000, 2),
              internal.sales = round(internal.sales/1000000, 2)) %>% 
       melt(id.vars = "city") %>% 
@@ -647,8 +647,8 @@ server <- function(input, output, session) {
       ordering <- contribution_data()$ordering
       
       table_data <- share_data() %>% 
-        mutate(`Total potential` = format(`Total potential`, digits = 2, big.interval = 3, big.mark = ","),
-               `TTH` = format(`TTH`, digits = 2, big.interval = 3, big.mark = ","),
+        mutate(`Total potential` = format(`Total potential`, big.interval = 3, big.mark = ","),
+               `TTH` = format(`TTH`, big.interval = 3, big.mark = ","),
                `Share%` = paste0(`Share%`*100, "%")) %>% 
         select("city", "Total potential", "TTH", "Share%") %>% 
         melt(id.vars = "city") %>% 
@@ -818,8 +818,8 @@ server <- function(input, output, session) {
       ordering <- contribution_data()$ordering
       
       table_data <- city_data() %>% 
-        mutate(`City hospitals potential` = format(`City hospitals potential`, digits = 2, big.interval = 3, big.mark = ","),
-               `TTH` = format(`TTH`, digits = 2, big.interval = 3, big.mark = ","),
+        mutate(`City hospitals potential` = format(`City hospitals potential`, big.interval = 3, big.mark = ","),
+               `TTH` = format(`TTH`, big.interval = 3, big.mark = ","),
                `Share%` = paste0(`Share%`*100, "%")) %>% 
         select("city", "City hospitals potential", "TTH", "Share%") %>% 
         melt(id.vars = "city") %>% 
@@ -989,8 +989,8 @@ server <- function(input, output, session) {
       ordering <- contribution_data()$ordering
       
       table_data <- county_data() %>% 
-        mutate(`County hospitals potential` = format(`County hospitals potential`, digits = 2, big.interval = 3, big.mark = ","),
-               `TTH` = format(`TTH`, digits = 2, big.interval = 3, big.mark = ","),
+        mutate(`County hospitals potential` = format(`County hospitals potential`, big.interval = 3, big.mark = ","),
+               `TTH` = format(`TTH`, big.interval = 3, big.mark = ","),
                `Share%` = paste0(`Share%`*100, "%")) %>% 
         select("city", "County hospitals potential", "TTH", "Share%") %>% 
         melt(id.vars = "city") %>% 
@@ -1297,15 +1297,11 @@ server <- function(input, output, session) {
              share_pot_chc = internal / potential_chc_2018,
              share_mol = internal / molecule_2018) %>% 
       filter(channel %in% input$channel,
-             market %in% input$mkt,
-             province %in% province()) %>% 
-      select(city, channel, terminal, potential_2018, potential_2020, potential_chc_2018, potential_chc_2020, 
+             market %in% input$mkt) %>% 
+      select(province, city, channel, terminal, potential_2018, potential_2020, potential_chc_2018, potential_chc_2020, 
              chc_2020, chc_2018, molecule_2018, internal, share_mol) %>% 
-      mutate(potential_con_2018 = potential_2018 / sum(potential_2018, na.rm = TRUE),
-             potential_chc_con_2018 = potential_chc_2018 / sum(potential_chc_2018, na.rm = TRUE),
-             potential_con_2020 = potential_2020 / sum(potential_2020, na.rm = TRUE),
-             potential_chc_con_2020 = potential_chc_2020 / sum(potential_chc_2020, na.rm = TRUE),
-             internal_con = internal / sum(internal, na.rm = TRUE))
+      mutate(potential_con_2020 = potential_2020 / sum(potential_2020, na.rm = TRUE),
+             potential_chc_con_2020 = potential_chc_2020 / sum(potential_chc_2020, na.rm = TRUE))
     
     if (input$chc == "no") {
       data1 <- data %>% 
@@ -1330,7 +1326,13 @@ server <- function(input, output, session) {
                                             3,
                                             ifelse(potential_con_cum <= as.numeric(input$potential_div)/100 & share_mol < input$share_div/100,
                                                    4,
-                                                   0)))))
+                                                   0))))) %>% 
+      filter(province %in% province()) %>% 
+      mutate(potential_con_2018 = potential_2018 / sum(potential_2018, na.rm = TRUE),
+             potential_chc_con_2018 = potential_chc_2018 / sum(potential_chc_2018, na.rm = TRUE),
+             potential_con_2020 = potential_2020 / sum(potential_2020, na.rm = TRUE),
+             potential_chc_con_2020 = potential_chc_2020 / sum(potential_chc_2020, na.rm = TRUE),
+             internal_con = internal / sum(internal, na.rm = TRUE))
     
     data2
   })
