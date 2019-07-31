@@ -1,11 +1,12 @@
-options(shiny.maxRequestSize = 1000 * 1024 ^ 2)
+options(shiny.maxRequestSize = 1000 * 1024 ^ 2,
+        encoding = "UTF-8")
 
 load("./data/data.RData")
 load("./data/raw_data_final.RData")
 load("./data/raw_data_forecast.RData")
 ######################## load function graph1 ##################################
 
-source("./functions/quadrant_table.R")
+source("./functions/quadrant_table.R", encoding = "UTF-8")
 
 ######################## load function graph1 ##################################
 
