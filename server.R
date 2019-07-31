@@ -1294,13 +1294,22 @@ server <- function(input, output, session) {
                                0,
                                internal),
              internal = as.numeric(internal)) %>% 
+      filter(channel %in% input$channel,
+             market %in% input$mkt) %>% 
+      group_by(province, city) %>% 
+      summarise(terminal = sum(terminal, na.rm = TRUE),
+                potential_2020 = sum(potential_2020, na.rm = TRUE),
+                potential_chc_2020 = sum(potential_chc_2020, na.rm = TRUE),
+                chc_2020 = sum(chc_2020, na.rm = TRUE),
+                potential_2018 = sum(potential_2018, na.rm = TRUE),
+                potential_chc_2018 = sum(potential_chc_2018, na.rm = TRUE),
+                chc_2018 = sum(chc_2018, na.rm = TRUE),
+                molecule_2018 = sum(molecule_2018, na.rm = TRUE),
+                internal = sum(internal, na.rm = TRUE)) %>% 
+      ungroup() %>% 
       mutate(share_pot = internal / potential_2018,
              share_pot_chc = internal / potential_chc_2018,
              share_mol = internal / molecule_2018) %>% 
-      filter(channel %in% input$channel,
-             market %in% input$mkt) %>% 
-      select(province, city, channel, terminal, potential_2018, potential_2020, potential_chc_2018, potential_chc_2020, 
-             chc_2020, chc_2018, molecule_2018, internal, share_mol) %>% 
       mutate(potential_con_2020 = potential_2020 / sum(potential_2020, na.rm = TRUE),
              potential_chc_con_2020 = potential_chc_2020 / sum(potential_chc_2020, na.rm = TRUE))
     
@@ -1506,57 +1515,65 @@ server <- function(input, output, session) {
     })
   })
   
-  output$scatter <- renderPlotly({
+  scatter_plot <- eventReactive(input$refresh, {
     if (is.null(detail_data()) | is.null(input$potential_div) | is.null(input$share_div)) return(NULL)
+    
+    plot_data <- detail_data()
+    
+    p <- plot_ly(hoverinfo = "name+x+y")
+    
+    for (i in unique(plot_data$city)) {
+      p <- p %>% 
+        add_trace(x = plot_data$potential_con_cum[which(plot_data$city == i)],
+                  y = plot_data$share_mol[which(plot_data$city == i)],
+                  type = "scatter",
+                  mode = "markers",
+                  name = i,
+                  color = I("#2C5D98"))
+    }
+    
+    p <- p %>% 
+      add_segments(x = 0,
+                   xend = 1,
+                   y = input$share_div/100,
+                   yend = input$share_div/100,
+                   color = I("#FF0000")) %>% 
+      add_segments(x = input$potential_div/100,
+                   xend = input$potential_div/100,
+                   y = 0,
+                   yend = 1,
+                   color = I("#FF0000")) %>% 
+      layout(
+        showlegend = FALSE,
+        xaxis = list(
+          range = c(1, 0),
+          hoverformat = ".3f",
+          zeroline = FALSE,
+          showline = TRUE,
+          showgrid = TRUE,
+          title = "Cumulative of 2020 Market Potential",
+          mirror = "ticks"
+        ),
+        yaxis = list(
+          side = "right",
+          range = c(0, 1),
+          hoverformat = ".3f",
+          zeroline = FALSE,
+          showline = TRUE,
+          showgrid = TRUE,
+          title = "Share(TTH/Molecule)",
+          mirror = "ticks"
+        )
+      )
+    
+    p
+  })
+  
+  output$scatter <- renderPlotly({
+    if (is.null(scatter_plot())) return(NULL)
     input$refresh
     isolate({
-      plot_data <- detail_data()
-      
-      p <- plot_ly(hoverinfo = "name+x+y")
-      
-      for (i in unique(plot_data$city)) {
-        p <- p %>% 
-          add_trace(x = plot_data$potential_con_cum[which(plot_data$city == i)],
-                    y = plot_data$share_mol[which(plot_data$city == i)],
-                    type = "scatter",
-                    mode = "markers",
-                    name = i,
-                    color = I("#2C5D98"))
-      }
-      
-      p <- p %>% 
-        add_segments(x = 0,
-                     xend = 1,
-                     y = input$share_div/100,
-                     yend = input$share_div/100,
-                     color = I("#FF0000")) %>% 
-        add_segments(x = input$potential_div/100,
-                     xend = input$potential_div/100,
-                     y = 0,
-                     yend = 1,
-                     color = I("#FF0000")) %>% 
-        layout(
-          showlegend = FALSE,
-          xaxis = list(
-            range = c(1, 0),
-            zeroline = FALSE,
-            showline = TRUE,
-            showgrid = TRUE,
-            title = "Cumulative of 2020 Market Potential",
-            mirror = "ticks"
-          ),
-          yaxis = list(
-            side = "right",
-            range = c(0, 1),
-            zeroline = FALSE,
-            showline = TRUE,
-            showgrid = TRUE,
-            title = "Share(TTH/Molecule)",
-            mirror = "ticks"
-          )
-        )
-      
-      p
+      scatter_plot()
     })
   })
   

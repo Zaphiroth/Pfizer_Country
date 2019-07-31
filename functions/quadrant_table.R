@@ -19,8 +19,8 @@ quadrant <- function(data, seg, chc) {
                                      0,
                                      x)}) %>% 
       mutate(value = ifelse(key %in% c("Current Pot Con%", "Current Int Con%", "Share%(TTH/Pot)", "Share%(TTH/Mol)"),
-                            paste0(round(value*100, 2), "%"),
-                            value))
+                            paste0(round(value*100, 1), "%"),
+                            format(round(value), big.interval = 3, big.mark = ",")))
     
   } else if (chc == "yes") {
     data2 <- data.frame(
@@ -38,7 +38,7 @@ quadrant <- function(data, seg, chc) {
                                      x)}) %>% 
       mutate(value = ifelse(key %in% c("Current Pot Con%", "Current Int Con%", "Share%(TTH/Pot)", "Share%(TTH/Mol)"),
                             paste0(round(value*100, 1), "%"),
-                            format(value, digits = 0, big.interval = 3, big.mark = ",")))
+                            format(round(value), big.interval = 3, big.mark = ",")))
     
   } else {
     stop("Function CHC Error.")
