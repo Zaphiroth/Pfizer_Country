@@ -48,25 +48,48 @@ ui <- dashboardPage(
                             # offset = 1,
                             div(DT::dataTableOutput("summary_table"), 
                                 style = "font-size:90%")),
-                     column(width = 3,
-                            offset = 1,
-                            div(DT::dataTableOutput("summary_table1"),
-                                style = "font-size:90%"),
-                            br(),
-                            div(plotlyOutput("summary_bar1", height = "180px"), 
-                                style = "font-size:90%")
-                     ),
-                     
-                     column(width = 2,
-                            offset = 1,
-                            div(DT::dataTableOutput("summary_table2"),
-                                style = "font-size:90%"),
-                            br(),
-                            div(plotlyOutput("summary_bar2", height = "180px"), 
-                                style = "font-size:90%")
-                     )
+                     # column(width = 3,
+                     #        offset = 1,
+                     #        div(DT::dataTableOutput("summary_table1"),
+                     #            style = "font-size:90%"),
+                     #        br(),
+                     #        div(plotlyOutput("summary_bar1", height = "180px"), 
+                     #            style = "font-size:90%")
+                     # ),
+                     # 
+                     # column(width = 2,
+                     #        offset = 1,
+                     #        div(DT::dataTableOutput("summary_table2"),
+                     #            style = "font-size:90%"),
+                     #        br(),
+                     #        div(plotlyOutput("summary_bar2", height = "180px"), 
+                     #            style = "font-size:90%")
+                     # )
                      # style = "height:200px"
                      # )
+                     column(
+                       width = 7,
+                       offset = 1,
+                       fluidRow(
+                         column(width = 6,
+                                div(DT::dataTableOutput("summary_table1"),
+                                    style = "font-size:90%")),
+                         column(width = 5,
+                                offset = 1,
+                                div(DT::dataTableOutput("summary_table2"),
+                                    style = "font-size:90%"))
+                       ),
+                       br(),
+                       fluidRow(
+                         column(width = 6,
+                                div(plotlyOutput("summary_bar1", height = "180px"), 
+                                    style = "font-size:90%")),
+                         column(width = 5,
+                                offset = 1,
+                                div(plotlyOutput("summary_bar2", height = "180px"), 
+                                    style = "font-size:90%"))
+                       )
+                     )
                  )
                ),
                

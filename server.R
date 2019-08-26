@@ -550,7 +550,9 @@ server <- function(input, output, session) {
     }
     
     data1 <- data %>% 
-      mutate(`Total` = `City` + `County`) %>% 
+      mutate(`City` = ifelse(is.na(`City`), 0, `City`),
+             `County` = ifelse(is.na(`County`), 0, `County`),
+             `Total` = `City` + `County`) %>% 
       melt(id.vars = "city") %>% 
       dcast(variable~city, value.var = "value") %>% 
       mutate(variable = as.character(variable),
@@ -560,7 +562,6 @@ server <- function(input, output, session) {
                                       "县",
                                       variable))) %>% 
       select("城市" = "variable", ordering)
-    data1[is.na(data1)] <- 0
     
     data1
   })
@@ -623,7 +624,9 @@ server <- function(input, output, session) {
       summarise(value = sum(value, na.rm = TRUE),
                 internal.sales = sum(internal.sales, na.rm = TRUE)) %>% 
       ungroup() %>% 
-      mutate(share = round(internal.sales/value, 3),
+      mutate(value = ifelse(is.na(value), 0, value),
+             internal.sales = ifelse(is.na(internal.sales), 0, internal.sales),
+             share = round(internal.sales/value, 3),
              value = round(value/1000000, 2),
              internal.sales = round(internal.sales/1000000, 2)) %>% 
       melt(id.vars = "city") %>% 
@@ -789,7 +792,9 @@ server <- function(input, output, session) {
     
     data1 <- data %>% 
       group_by(city) %>% 
-      summarise(value = sum(value, na.rm = TRUE),
+      summarise(value = ifelse(is.na(value), 0, value),
+                internal.sales = ifelse(is.na(internal.sales), 0, internal.sales),
+                value = sum(value, na.rm = TRUE),
                 internal.sales = sum(internal.sales, na.rm = TRUE)) %>% 
       ungroup() %>% 
       mutate(share = round(internal.sales / value, 3),
@@ -806,7 +811,6 @@ server <- function(input, output, session) {
                                              variable)))) %>% 
       dcast(city~variable, value.var = "value") %>% 
       right_join(data.frame(city = ordering, stringsAsFactors = FALSE), by = c("city"))
-    
     data1[is.na(data1)] <- 0
     
     data1
@@ -960,7 +964,9 @@ server <- function(input, output, session) {
     
     data1 <- data %>% 
       group_by(city) %>% 
-      summarise(value = sum(value, na.rm = TRUE),
+      summarise(value = ifelse(is.na(value), 0, value),
+                internal.sales = ifelse(is.na(internal.sales), 0, internal.sales),
+                value = sum(value, na.rm = TRUE),
                 internal.sales = sum(internal.sales, na.rm = TRUE)) %>% 
       ungroup() %>% 
       mutate(share = round(internal.sales / value, 3),
@@ -977,7 +983,6 @@ server <- function(input, output, session) {
                                              variable)))) %>% 
       dcast(city~variable, value.var = "value") %>% 
       right_join(data.frame(city = ordering, stringsAsFactors = FALSE), by = c("city"))
-    
     data1[is.na(data1)] <- 0
     
     data1
@@ -1138,6 +1143,7 @@ server <- function(input, output, session) {
                            "r",
                            "p")) %>% 
       melt() %>% 
+      mutate(value = ifelse(is.na(value), 0, value)) %>% 
       dcast(city~variable+year, value.var = "value") %>% 
       mutate(city_growth = round(`City_r` / `City_p` - 1, 3),
              county_growth = round(`County_r` / `County_p` - 1, 3))
