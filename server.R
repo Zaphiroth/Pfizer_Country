@@ -67,8 +67,8 @@ server <- function(input, output, session) {
   observeEvent(raw_data_final, {
     updateSelectInput(session, 
                       "province",
-                      choices = c("全国", sort(unique(raw_data_final$province))),
-                      selected = "全国")
+                      choices = c(sort(unique(raw_data_final$province)), "全国"),
+                      selected = c(sort(unique(raw_data_final$province)), "全国")[1])
   })
   
   province <- reactive({
@@ -1268,7 +1268,7 @@ server <- function(input, output, session) {
   })
   
   ##-- detail
-  detail_data <- eventReactive(input$refresh, {
+  detail_data <- eventReactive(input$goButton, {
     if (is.null(input$channel) | is.null(input$mkt) | is.null(province()) | 
         is.null(input$chc) | is.null(input$potential_div) | is.null(input$share_div))
       return(NULL)
@@ -1355,8 +1355,8 @@ server <- function(input, output, session) {
   
   output$opportunistic <- renderDT({
     if (is.null(detail_data())) return(NULL)
-    input$refresh
-    isolate({
+    # input$refresh
+    # isolate({
       table_data <- quadrant(detail_data(), seg = 1, chc = input$chc)
       
       DT::datatable(
@@ -1392,13 +1392,13 @@ server <- function(input, output, session) {
           c("key", "value"),
           backgroundColor = "#DAEEF3"
         )
-    })
+    # })
   })
   
   output$defend <- renderDT({
     if (is.null(detail_data())) return(NULL)
-    input$refresh
-    isolate({
+    # input$refresh
+    # isolate({
       table_data <- quadrant(detail_data(), seg = 2, chc = input$chc)
       
       DT::datatable(
@@ -1434,13 +1434,13 @@ server <- function(input, output, session) {
           c("key", "value"),
           backgroundColor = "#EBF1DE"
         )
-    })
+    # })
   })
   
   output$broad <- renderDT({
     if (is.null(detail_data())) return(NULL)
-    input$refresh
-    isolate({
+    # input$refresh
+    # isolate({
       table_data <- quadrant(detail_data(), seg = 3, chc = input$chc)
       
       DT::datatable(
@@ -1476,13 +1476,13 @@ server <- function(input, output, session) {
           c("key", "value"),
           backgroundColor = "#EBF1DE"
         )
-    })
+    # })
   })
   
   output$top <- renderDT({
     if (is.null(detail_data())) return(NULL)
-    input$refresh
-    isolate({
+    # input$refresh
+    # isolate({
       table_data <- quadrant(detail_data(), seg = 4, chc = input$chc)
       
       DT::datatable(
@@ -1518,10 +1518,10 @@ server <- function(input, output, session) {
           c("key", "value"),
           backgroundColor = "#DAEEF3"
         )
-    })
+    # })
   })
   
-  scatter_plot <- eventReactive(input$refresh, {
+  scatter_plot <- reactive({
     if (is.null(detail_data()) | is.null(input$potential_div) | is.null(input$share_div)) return(NULL)
     
     plot_data <- detail_data()
@@ -1577,16 +1577,16 @@ server <- function(input, output, session) {
   
   output$scatter <- renderPlotly({
     if (is.null(scatter_plot())) return(NULL)
-    input$refresh
-    isolate({
+    # input$refresh
+    # isolate({
       scatter_plot()
-    })
+    # })
   })
   
   output$detail <- renderDT({
     if (is.null(detail_data())) return(NULL)
-    input$refresh
-    isolate({
+    # input$refresh
+    # isolate({
       table_data <- detail_data() %>% 
         mutate(segment = ifelse(segment == 1,
                                 "Opportunistic",
@@ -1698,7 +1698,7 @@ server <- function(input, output, session) {
           digits = 0,
           interval = 3
         )
-    })
+    # })
   })
   
   

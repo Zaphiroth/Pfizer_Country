@@ -236,7 +236,7 @@ ui <- dashboardPage(
                      collapsible = FALSE,
                      width = 12,
                      
-                     column(7,
+                     column(12,
                             column(10,
                                    align = "center",
                                    div(
@@ -251,7 +251,7 @@ ui <- dashboardPage(
                                        solidHeader = TRUE,
                                        collapsible = FALSE,
                                        width = 6,
-                                       style = "background:#DAEEF3; height:250px;",
+                                       style = "background:#DAEEF3; height:270px;",
                                        div(DT::dataTableOutput("opportunistic"),
                                            style = "font-size:90%;")
                                      ),
@@ -264,7 +264,7 @@ ui <- dashboardPage(
                                        solidHeader = TRUE,
                                        collapsible = FALSE,
                                        width = 6,
-                                       style = "background:#EBF1DE; height:250px;",
+                                       style = "background:#EBF1DE; height:270px;",
                                        div(DT::dataTableOutput("defend"),
                                            style = "font-size:90%;")
                                      ),
@@ -277,7 +277,7 @@ ui <- dashboardPage(
                                        solidHeader = TRUE,
                                        collapsible = FALSE,
                                        width = 6,
-                                       style = "background:#EBF1DE; height:250px;",
+                                       style = "background:#EBF1DE; height:270px;",
                                        div(DT::dataTableOutput("broad"),
                                            style = "font-size:90%;")
                                      ),
@@ -290,26 +290,26 @@ ui <- dashboardPage(
                                        solidHeader = TRUE,
                                        collapsible = FALSE,
                                        width = 6,
-                                       style = "background:#DAEEF3; height:250px;",
+                                       style = "background:#DAEEF3; height:270px;",
                                        div(DT::dataTableOutput("top"),
                                            style = "font-size:90%;")
                                      ),
                                      # column(6,
                                      #        div(DT::dataTableOutput("top"),
                                      #            style = "font-size:90%; height:250px;")),
-                                     column(12,
-                                            align = "center",
-                                            div(actionButton("refresh", label = "Refresh", width = "200px"),
-                                                style = "display:inline-block;")),
+                                     # column(12,
+                                     #        align = "center",
+                                     #        div(actionButton("refresh", label = "Refresh", width = "200px"),
+                                     #            style = "display:inline-block;")),
                                      style = "height:400px;"
                                    )),
                             column(2,
-                                   align = "left",
+                                   align = "center",
                                    div(numericInput("share_div", label = "Share(TTH/Molecule, %)", value = 50, min = 0, max = 100, width = "155px"),
-                                       style = "text-align:center; margin-top:330px; display:inline-block; height:400px; font-size:90%;"))),
-                     column(5,
-                            align = "right",
-                            div(plotlyOutput("scatter", height = "700px", width = "90%"),
+                                       style = "text-align:center; margin-top:350px; display:inline-block; height:400px; font-size:90%;"))),
+                     column(12,
+                            align = "left",
+                            div(plotlyOutput("scatter", height = "700px", width = "95%"),
                                 style = "font-size:90%;"))
                  )
                ),
