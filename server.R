@@ -4,7 +4,7 @@ options(shiny.maxRequestSize = 1000 * 1024 ^ 2,
 load("./data/data.RData")
 load("./data/raw_data_final.RData")
 load("./data/raw_data_forecast.RData")
-######################## load function graph1 ##################################
+######################## load function ##################################
 
 source("./functions/quadrant_table.R", encoding = "UTF-8")
 
@@ -16,7 +16,7 @@ source("./functions/quadrant_table.R", encoding = "UTF-8")
 
 # source("./functions/99_graph1_corp_m.R")
 
-######################## shiny server core code#################################
+######################## shiny server core code ################################
 
 
 server <- function(input, output, session) {
