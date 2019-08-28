@@ -1268,7 +1268,7 @@ server <- function(input, output, session) {
   })
   
   ##-- detail
-  detail_data <- eventReactive(input$goButton, {
+  detail_data <- eventReactive(c(input$goButton, input$potential_div, input$share_div), {
     if (is.null(input$channel) | is.null(input$mkt) | is.null(province()) | 
         is.null(input$chc) | is.null(input$potential_div) | is.null(input$share_div))
       return(NULL)
