@@ -26,3 +26,7 @@ body {
   position: fixed;
   z-index: 100000;
 }
+
+.nowrap {
+	white-space: nowrap;
+}

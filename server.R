@@ -154,8 +154,11 @@ server <- function(input, output, session) {
     if (is.null(summary_data())) return(NULL)
     input$goButton
     isolate({
+      table_data <- summary_data()$summary_table
+      table_data[table_data == 0] <- "-"
+      
       DT::datatable(
-        summary_data()$summary_table,
+        table_data,
         rownames = FALSE,
         # extensions = c('FixedColumns', 'Buttons'),
         #filter = 'bottom',
@@ -192,12 +195,16 @@ server <- function(input, output, session) {
         )
     })
   })
+  
   output$summary_table1 <- renderDT({
     if (is.null(summary_data())) return(NULL)
     input$goButton
     isolate({
+      table_data <- summary_data()$summary_table1
+      table_data[table_data == 0] <- "-"
+      
       DT::datatable(
-        summary_data()$summary_table1,
+        table_data,
         rownames = FALSE,
         # extensions = c('FixedColumns', 'Buttons'),
         #filter = 'bottom',
@@ -233,8 +240,11 @@ server <- function(input, output, session) {
     if (is.null(summary_data())) return(NULL)
     input$goButton
     isolate({
+      table_data <- summary_data()$summary_table2
+      table_data[table_data == 0] <- "-"
+      
       DT::datatable(
-        summary_data()$summary_table2,
+        table_data,
         rownames = FALSE,
         # extensions = c('FixedColumns', 'Buttons'),
         #filter = 'bottom',
@@ -285,6 +295,7 @@ server <- function(input, output, session) {
                  color = I("#93CDDD")) %>% 
         layout(
           showlegend = FALSE,
+          margin = list(l = 0),
           xaxis = list(
             zeroline = FALSE,
             showline = FALSE,
@@ -321,6 +332,7 @@ server <- function(input, output, session) {
                  color = I("#93CDDD")) %>% 
         layout(
           showlegend = FALSE,
+          margin = list(l = 0),
           xaxis = list(
             zeroline = FALSE,
             showline = FALSE,
@@ -392,8 +404,11 @@ server <- function(input, output, session) {
     if (is.null(contribution_data())) return(NULL)
     input$goButton
     isolate({
+      table_data <- contribution_data()$data
+      table_data[table_data == 0] <- "-"
+      
       DT::datatable(
-        contribution_data()$data,
+        table_data,
         rownames = FALSE,
         # extensions = c('FixedColumns', 'Buttons'),
         #filter = 'bottom',
@@ -401,9 +416,16 @@ server <- function(input, output, session) {
         options = list(
           # dom = '<"bottom">Bfrtpl',
           # buttons = I('colvis'),
-          columnDefs = list(list(
-            className = 'dt-center', targets = '_all'
-          )),
+          columnDefs = list(
+            list(
+              className = 'dt-center',
+              targets = '_all'
+            ),
+            list(
+              className = 'nowrap',
+              targets = '_all'
+            )
+          ),
           initComplete = JS(
             "function(settings, json) {",
             "$(this.api().table().header()).css({'background-color': '#008F91', 'color': '#fff'});",
@@ -455,7 +477,9 @@ server <- function(input, output, session) {
             showline = FALSE,
             showgrid = FALSE,
             title = "",
-            mirror = "ticks"
+            mirror = "ticks",
+            tickangle = 45,
+            tickfont = list(size = 8)
           ),
           yaxis = list(
             zeroline = TRUE,
@@ -515,7 +539,9 @@ server <- function(input, output, session) {
             showline = FALSE,
             showgrid = FALSE,
             title = "",
-            mirror = "ticks"
+            mirror = "ticks",
+            tickangle = 45,
+            tickfont = list(size = 8)
           ),
           yaxis =  list(
             zeroline = TRUE,
@@ -570,8 +596,11 @@ server <- function(input, output, session) {
     if (is.null(hospital_data())) return(NULL)
     input$goButton
     isolate({
+      table_data <- hospital_data()
+      table_data[table_data == 0] <- "-"
+      
       DT::datatable(
-        hospital_data(),
+        table_data,
         rownames = FALSE,
         # extensions = c('FixedColumns', 'Buttons'),
         #filter = 'bottom',
@@ -579,9 +608,16 @@ server <- function(input, output, session) {
         options = list(
           # dom = '<"bottom">Bfrtpl',
           # buttons = I('colvis'),
-          columnDefs = list(list(
-            className = 'dt-center', targets = '_all'
-          )),
+          columnDefs = list(
+            list(
+              className = 'dt-center',
+              targets = '_all'
+            ),
+            list(
+              className = 'nowrap',
+              targets = '_all'
+            )
+          ),
           initComplete = JS(
             "function(settings, json) {",
             "$(this.api().table().header()).css({'background-color': '#008F91', 'color': '#fff'});",
@@ -658,6 +694,7 @@ server <- function(input, output, session) {
         melt(id.vars = "city") %>% 
         dcast(variable~city, value.var = "value") %>% 
         select("城市" = "variable", ordering)
+      table_data[table_data == 0 | table_data == "0%"] <- "-"
       
       DT::datatable(
         table_data,
@@ -668,9 +705,16 @@ server <- function(input, output, session) {
         options = list(
           # dom = '<"bottom">Bfrtpl',
           # buttons = I('colvis'),
-          columnDefs = list(list(
-            className = 'dt-center', targets = '_all'
-          )),
+          columnDefs = list(
+            list(
+              className = 'dt-center',
+              targets = '_all'
+            ),
+            list(
+              className = 'nowrap',
+              targets = '_all'
+            )
+          ),
           initComplete = JS(
             "function(settings, json) {",
             "$(this.api().table().header()).css({'background-color': '#008F91', 'color': '#fff'});",
@@ -734,7 +778,8 @@ server <- function(input, output, session) {
                         xanchor = "center",
                         yanchor = "bottom",
                         showarrow = FALSE,
-                        font = list(color = "#E46C0A")) %>% 
+                        font = list(color = "#E46C0A",
+                                    size = 10)) %>% 
         layout(
           showlegend = TRUE,
           xaxis = list(
@@ -742,7 +787,9 @@ server <- function(input, output, session) {
             showline = FALSE,
             showgrid = FALSE,
             title = "",
-            mirror = "ticks"
+            mirror = "ticks",
+            tickangle = 45,
+            tickfont = list(size = 8)
           ),
           yaxis =  list(
             side = "left",
@@ -751,6 +798,7 @@ server <- function(input, output, session) {
             showgrid = FALSE,
             showticklabels = FALSE,
             title = "",
+            size = 10,
             mirror = "ticks",
             range = c(0, max(plot_data$`Total potential`, 0.01)*1.2)
           ),
@@ -830,6 +878,7 @@ server <- function(input, output, session) {
         melt(id.vars = "city") %>% 
         dcast(variable~city, value.var = "value") %>% 
         select("城市" = "variable", ordering)
+      table_data[table_data == 0 | table_data == "0%"] <- "-"
       
       DT::datatable(
         table_data,
@@ -840,9 +889,16 @@ server <- function(input, output, session) {
         options = list(
           # dom = '<"bottom">Bfrtpl',
           # buttons = I('colvis'),
-          columnDefs = list(list(
-            className = 'dt-center', targets = '_all'
-          )),
+          columnDefs = list(
+            list(
+              className = 'dt-center',
+              targets = '_all'
+            ),
+            list(
+              className = 'nowrap',
+              targets = '_all'
+            )
+          ),
           initComplete = JS(
             "function(settings, json) {",
             "$(this.api().table().header()).css({'background-color': '#008F91', 'color': '#fff'});",
@@ -906,7 +962,8 @@ server <- function(input, output, session) {
                         xanchor = "center",
                         yanchor = "bottom",
                         showarrow = FALSE,
-                        font = list(color = "#E46C0A")) %>% 
+                        font = list(color = "#E46C0A",
+                                    size = 10)) %>% 
         layout(
           showlegend = TRUE,
           xaxis = list(
@@ -914,7 +971,9 @@ server <- function(input, output, session) {
             showline = FALSE,
             showgrid = FALSE,
             title = "",
-            mirror = "ticks"
+            mirror = "ticks",
+            tickangle = 45,
+            tickfont = list(size = 8)
           ),
           yaxis =  list(
             side = "left",
@@ -1002,6 +1061,7 @@ server <- function(input, output, session) {
         melt(id.vars = "city") %>% 
         dcast(variable~city, value.var = "value") %>% 
         select("城市" = "variable", ordering)
+      table_data[table_data == 0 | table_data == "0%"] <- "-"
       
       DT::datatable(
         table_data,
@@ -1012,9 +1072,16 @@ server <- function(input, output, session) {
         options = list(
           # dom = '<"bottom">Bfrtpl',
           # buttons = I('colvis'),
-          columnDefs = list(list(
-            className = 'dt-center', targets = '_all'
-          )),
+          columnDefs = list(
+            list(
+              className = 'dt-center',
+              targets = '_all'
+            ),
+            list(
+              className = 'nowrap',
+              targets = '_all'
+            )
+          ),
           initComplete = JS(
             "function(settings, json) {",
             "$(this.api().table().header()).css({'background-color': '#008F91', 'color': '#fff'});",
@@ -1078,7 +1145,8 @@ server <- function(input, output, session) {
                         xanchor = "center",
                         yanchor = "bottom",
                         showarrow = FALSE,
-                        font = list(color = "#E46C0A")) %>% 
+                        font = list(color = "#E46C0A",
+                                    size = 10)) %>% 
         layout(
           showlegend = TRUE,
           xaxis = list(
@@ -1086,7 +1154,9 @@ server <- function(input, output, session) {
             showline = FALSE,
             showgrid = FALSE,
             title = "",
-            mirror = "ticks"
+            mirror = "ticks",
+            tickangle = 45,
+            tickfont = list(size = 8)
           ),
           yaxis =  list(
             side = "left",
@@ -1184,6 +1254,7 @@ server <- function(input, output, session) {
                                                       "Total",
                                                       variable))))) %>% 
         select("城市" = "variable", ordering)
+      table_data[table_data == 0 | table_data == "0%"] <- "-"
       
       DT::datatable(
         table_data,
@@ -1194,9 +1265,16 @@ server <- function(input, output, session) {
         options = list(
           # dom = '<"bottom">Bfrtpl',
           # buttons = I('colvis'),
-          columnDefs = list(list(
-            className = 'dt-center', targets = '_all'
-          )),
+          columnDefs = list(
+            list(
+              className = 'dt-center',
+              targets = '_all'
+            ),
+            list(
+              className = 'nowrap',
+              targets = '_all'
+            )
+          ),
           initComplete = JS(
             "function(settings, json) {",
             "$(this.api().table().header()).css({'background-color': '#008F91', 'color': '#fff'});",
@@ -1252,7 +1330,9 @@ server <- function(input, output, session) {
             showline = FALSE,
             showgrid = FALSE,
             title = "",
-            mirror = "ticks"
+            mirror = "ticks",
+            tickangle = 45,
+            tickfont = list(size = 8)
           ),
           yaxis =  list(
             zeroline = TRUE,
@@ -1268,96 +1348,108 @@ server <- function(input, output, session) {
   })
   
   ##-- detail
-  detail_data <- eventReactive(c(input$goButton, input$potential_div, input$share_div), {
-    if (is.null(input$channel) | is.null(input$mkt) | is.null(province()) | 
-        is.null(input$chc) | is.null(input$potential_div) | is.null(input$share_div))
+  detail_data <- eventReactive(input$goButton, {
+    if (is.null(input$channel) | is.null(input$mkt) | is.null(province()) | is.null(input$chc))
       return(NULL)
     
-    data <- raw_data_forecast %>% 
-      mutate(channel = tolower(channel)) %>% 
-      select("province", "city", "channel", "market",
-             "terminal" = "terminal.",
-             "potential_2020" = "x2020.city",
-             "potential_chc_2020" = "x2020.city.chc",
-             "chc_2020" = "x2020.chc",
-             "potential_2018" = "x2018.city",
-             "potential_chc_2018" = "x2018.city.chc",
-             "chc_2018" = "x2018.chc",
-             "molecule_2018" = "molecule_sales.2018",
-             "internal" = "tth.2018") %>% 
-      mutate(chc_2020 = gsub(",", "", chc_2020),
-             chc_2020 = ifelse(chc_2020 == "-",
-                               0,
-                               chc_2020),
-             chc_2020 = as.numeric(chc_2020),
-             chc_2018 = gsub(",", "", chc_2018),
-             chc_2018 = ifelse(chc_2018 == "-",
-                               0,
-                               chc_2018),
-             chc_2018 = as.numeric(chc_2018),
-             internal = gsub(",", "", internal),
-             internal = ifelse(internal == "-",
-                               0,
-                               internal),
-             internal = as.numeric(internal)) %>% 
-      filter(channel %in% input$channel,
-             market %in% input$mkt) %>% 
-      group_by(province, city) %>% 
-      summarise(terminal = sum(terminal, na.rm = TRUE),
-                potential_2020 = sum(potential_2020, na.rm = TRUE),
-                potential_chc_2020 = sum(potential_chc_2020, na.rm = TRUE),
-                chc_2020 = sum(chc_2020, na.rm = TRUE),
-                potential_2018 = sum(potential_2018, na.rm = TRUE),
-                potential_chc_2018 = sum(potential_chc_2018, na.rm = TRUE),
-                chc_2018 = sum(chc_2018, na.rm = TRUE),
-                molecule_2018 = sum(molecule_2018, na.rm = TRUE),
-                internal = sum(internal, na.rm = TRUE)) %>% 
-      ungroup() %>% 
-      mutate(share_pot = internal / potential_2018,
-             share_pot_chc = internal / potential_chc_2018,
-             share_mol = internal / molecule_2018) %>% 
-      mutate(potential_con_2020 = potential_2020 / sum(potential_2020, na.rm = TRUE),
-             potential_chc_con_2020 = potential_chc_2020 / sum(potential_chc_2020, na.rm = TRUE))
-    
-    if (input$chc == "no") {
-      data1 <- data %>% 
-        arrange(-potential_con_2020) %>% 
-        mutate(potential_con_cum = cumsum(potential_con_2020))
+    input$goButton
+    isolate({
+      data <- raw_data_forecast %>% 
+        mutate(channel = tolower(channel)) %>% 
+        select("province", "city", "channel", "market",
+               "terminal" = "terminal.",
+               "potential_2020" = "x2020.city",
+               "potential_chc_2020" = "x2020.city.chc",
+               "chc_2020" = "x2020.chc",
+               "potential_2018" = "x2018.city",
+               "potential_chc_2018" = "x2018.city.chc",
+               "chc_2018" = "x2018.chc",
+               "molecule_2018" = "molecule_sales.2018",
+               "internal" = "tth.2018") %>% 
+        mutate(chc_2020 = gsub(",", "", chc_2020),
+               chc_2020 = ifelse(chc_2020 == "-",
+                                 0,
+                                 chc_2020),
+               chc_2020 = as.numeric(chc_2020),
+               chc_2018 = gsub(",", "", chc_2018),
+               chc_2018 = ifelse(chc_2018 == "-",
+                                 0,
+                                 chc_2018),
+               chc_2018 = as.numeric(chc_2018),
+               internal = gsub(",", "", internal),
+               internal = ifelse(internal == "-",
+                                 0,
+                                 internal),
+               internal = as.numeric(internal)) %>% 
+        filter(channel %in% input$channel,
+               market %in% input$mkt,
+               province %in% province()) %>% 
+        group_by(province, city) %>% 
+        summarise(terminal = sum(terminal, na.rm = TRUE),
+                  potential_2020 = sum(potential_2020, na.rm = TRUE),
+                  potential_chc_2020 = sum(potential_chc_2020, na.rm = TRUE),
+                  chc_2020 = sum(chc_2020, na.rm = TRUE),
+                  potential_2018 = sum(potential_2018, na.rm = TRUE),
+                  potential_chc_2018 = sum(potential_chc_2018, na.rm = TRUE),
+                  chc_2018 = sum(chc_2018, na.rm = TRUE),
+                  molecule_2018 = sum(molecule_2018, na.rm = TRUE),
+                  internal = sum(internal, na.rm = TRUE)) %>% 
+        ungroup() %>% 
+        mutate(share_pot = internal / potential_2018,
+               share_pot_chc = internal / potential_chc_2018,
+               share_mol = internal / molecule_2018) %>% 
+        mutate(potential_con_2020 = potential_2020 / sum(potential_2020, na.rm = TRUE),
+               potential_chc_con_2020 = potential_chc_2020 / sum(potential_chc_2020, na.rm = TRUE))
       
-    } else if (input$chc == "yes") {
-      data1 <- data %>% 
-        arrange(-potential_chc_con_2020) %>% 
-        mutate(potential_con_cum = cumsum(potential_chc_con_2020))
+      if (input$chc == "no") {
+        data1 <- data %>% 
+          arrange(-potential_con_2020) %>% 
+          mutate(potential_con_cum = cumsum(potential_con_2020))
+        
+      } else if (input$chc == "yes") {
+        data1 <- data %>% 
+          arrange(-potential_chc_con_2020) %>% 
+          mutate(potential_con_cum = cumsum(potential_chc_con_2020))
+        
+      } else {
+        stop("Detail CHC Error.")
+      }
       
-    } else {
-      stop("Detail CHC Error.")
-    }
+      data1
+    })
+  })
+  
+  segmentation <- reactive({
+    if (is.null(detail_data()) | is.null(input$potential_div) | is.null(input$share_div))
+      return(NULL)
     
-    data2 <- data1 %>% 
-      mutate(segment = ifelse(potential_con_cum > as.numeric(input$potential_div)/100 & share_mol >= input$share_div/100,
-                              1,
-                              ifelse(potential_con_cum <= as.numeric(input$potential_div)/100 & share_mol >= input$share_div/100,
-                                     2,
-                                     ifelse(potential_con_cum > as.numeric(input$potential_div)/100 & share_mol < input$share_div/100,
-                                            3,
-                                            ifelse(potential_con_cum <= as.numeric(input$potential_div)/100 & share_mol < input$share_div/100,
-                                                   4,
-                                                   0))))) %>% 
-      filter(province %in% province()) %>% 
-      mutate(potential_con_2018 = potential_2018 / sum(potential_2018, na.rm = TRUE),
-             potential_chc_con_2018 = potential_chc_2018 / sum(potential_chc_2018, na.rm = TRUE),
-             potential_con_2020 = potential_2020 / sum(potential_2020, na.rm = TRUE),
-             potential_chc_con_2020 = potential_chc_2020 / sum(potential_chc_2020, na.rm = TRUE),
-             internal_con = internal / sum(internal, na.rm = TRUE))
-    
-    data2
+    c(input$potential_div, input$share_div)
+    isolate({
+      data1 <- `detail_data`() %>% 
+        mutate(segment = ifelse(potential_con_cum > as.numeric(input$potential_div)/100 & share_mol >= input$share_div/100,
+                                1,
+                                ifelse(potential_con_cum <= as.numeric(input$potential_div)/100 & share_mol >= input$share_div/100,
+                                       2,
+                                       ifelse(potential_con_cum > as.numeric(input$potential_div)/100 & share_mol < input$share_div/100,
+                                              3,
+                                              ifelse(potential_con_cum <= as.numeric(input$potential_div)/100 & share_mol < input$share_div/100,
+                                                     4,
+                                                     0))))) %>% 
+        mutate(potential_con_2018 = potential_2018 / sum(potential_2018, na.rm = TRUE),
+               potential_chc_con_2018 = potential_chc_2018 / sum(potential_chc_2018, na.rm = TRUE),
+               potential_con_2020 = potential_2020 / sum(potential_2020, na.rm = TRUE),
+               potential_chc_con_2020 = potential_chc_2020 / sum(potential_chc_2020, na.rm = TRUE),
+               internal_con = internal / sum(internal, na.rm = TRUE))
+      
+      data1
+    })
   })
   
   output$opportunistic <- renderDT({
-    if (is.null(detail_data())) return(NULL)
+    if (is.null(segmentation())) return(NULL)
     # input$refresh
     # isolate({
-      table_data <- quadrant(detail_data(), seg = 1, chc = input$chc)
+      table_data <- quadrant(segmentation(), seg = 1, chc = input$chc)
       
       DT::datatable(
         table_data,
@@ -1367,7 +1459,7 @@ server <- function(input, output, session) {
           columnDefs = list(
             list(className = "dt-left",
                  targets = 0),
-            list(className = "dt-center",
+            list(className = "dt-right",
                  targets = 1)
           ),
           # initComplete = JS(
@@ -1396,10 +1488,10 @@ server <- function(input, output, session) {
   })
   
   output$defend <- renderDT({
-    if (is.null(detail_data())) return(NULL)
+    if (is.null(segmentation())) return(NULL)
     # input$refresh
     # isolate({
-      table_data <- quadrant(detail_data(), seg = 2, chc = input$chc)
+      table_data <- quadrant(segmentation(), seg = 2, chc = input$chc)
       
       DT::datatable(
         table_data,
@@ -1409,7 +1501,7 @@ server <- function(input, output, session) {
           columnDefs = list(
             list(className = "dt-left",
                  targets = 0),
-            list(className = "dt-center",
+            list(className = "dt-right",
                  targets = 1)
           ),
           # initComplete = JS(
@@ -1437,11 +1529,11 @@ server <- function(input, output, session) {
     # })
   })
   
-  output$broad <- renderDT({
-    if (is.null(detail_data())) return(NULL)
+  output$expend <- renderDT({
+    if (is.null(segmentation())) return(NULL)
     # input$refresh
     # isolate({
-      table_data <- quadrant(detail_data(), seg = 3, chc = input$chc)
+      table_data <- quadrant(segmentation(), seg = 3, chc = input$chc)
       
       DT::datatable(
         table_data,
@@ -1451,7 +1543,7 @@ server <- function(input, output, session) {
           columnDefs = list(
             list(className = "dt-left",
                  targets = 0),
-            list(className = "dt-center",
+            list(className = "dt-right",
                  targets = 1)
           ),
           # initComplete = JS(
@@ -1479,11 +1571,11 @@ server <- function(input, output, session) {
     # })
   })
   
-  output$top <- renderDT({
-    if (is.null(detail_data())) return(NULL)
+  output$compete <- renderDT({
+    if (is.null(segmentation())) return(NULL)
     # input$refresh
     # isolate({
-      table_data <- quadrant(detail_data(), seg = 4, chc = input$chc)
+      table_data <- quadrant(segmentation(), seg = 4, chc = input$chc)
       
       DT::datatable(
         table_data,
@@ -1493,7 +1585,7 @@ server <- function(input, output, session) {
           columnDefs = list(
             list(className = "dt-left",
                  targets = 0),
-            list(className = "dt-center",
+            list(className = "dt-right",
                  targets = 1)
           ),
           # initComplete = JS(
@@ -1522,9 +1614,9 @@ server <- function(input, output, session) {
   })
   
   scatter_plot <- reactive({
-    if (is.null(detail_data()) | is.null(input$potential_div) | is.null(input$share_div)) return(NULL)
+    if (is.null(segmentation()) | is.null(input$potential_div) | is.null(input$share_div)) return(NULL)
     
-    plot_data <- detail_data()
+    plot_data <- segmentation()
     
     p <- plot_ly(hoverinfo = "name+x+y")
     
@@ -1584,18 +1676,18 @@ server <- function(input, output, session) {
   })
   
   output$detail <- renderDT({
-    if (is.null(detail_data())) return(NULL)
+    if (is.null(segmentation())) return(NULL)
     # input$refresh
     # isolate({
-      table_data <- detail_data() %>% 
+      table_data <- segmentation() %>% 
         mutate(segment = ifelse(segment == 1,
                                 "Opportunistic",
                                 ifelse(segment == 2,
                                        "Defend",
                                        ifelse(segment == 3,
-                                              "Broad Coverage",
+                                              "Expend",
                                               ifelse(segment == 4,
-                                                     "Top Priority",
+                                                     "Compete",
                                                      0)))))
       
       if (input$chc == "no") {
@@ -1661,14 +1753,21 @@ server <- function(input, output, session) {
       }
       
       table_data2 <- bind_rows(total_data, table_data1)
+      table_data2[table_data2 == 0] <- "-"
       
       DT::datatable(
         table_data2,
         rownames = FALSE,
         options = list(
           columnDefs = list(
-            list(className = "dt-center",
-                 targets = "_all")
+            list(
+              className = 'dt-center',
+              targets = '_all'
+            ),
+            list(
+              className = 'nowrap',
+              targets = '_all'
+            )
           ),
           initComplete = JS(
             "function(settings, json) {",
@@ -1676,7 +1775,7 @@ server <- function(input, output, session) {
             "}"
           ),
           paging = FALSE,
-          scrollX = FALSE,
+          scrollX = TRUE,
           searching = FALSE,
           ordering = FALSE,
           pageLength = 5,

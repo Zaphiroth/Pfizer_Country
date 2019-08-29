@@ -44,5 +44,7 @@ quadrant <- function(data, seg, chc) {
     stop("Function CHC Error.")
   }
   
+  data2[data2 == 0 | data2 == "0" | data2 == "0%"] <- "-"
+  
   return(data2)
 }
