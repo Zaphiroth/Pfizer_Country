@@ -74,7 +74,7 @@ server <- function(input, output, session) {
   province <- reactive({
     if (is.null(input$province)) {
       NULL
-    } else if (input$province == "全国") {
+    } else if ("全国" %in% input$province) {
       sort(unique(raw_data_final$province))
     } else {
       input$province
@@ -151,7 +151,9 @@ server <- function(input, output, session) {
     })
   
   output$summary_table <- renderDT({
-    if (is.null(summary_data())) return(NULL)
+    if (is.null(summary_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
       table_data <- summary_data()$summary_table
@@ -197,7 +199,9 @@ server <- function(input, output, session) {
   })
   
   output$summary_table1 <- renderDT({
-    if (is.null(summary_data())) return(NULL)
+    if (is.null(summary_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
       table_data <- summary_data()$summary_table1
@@ -237,7 +241,9 @@ server <- function(input, output, session) {
   })
   
   output$summary_table2 <- renderDT({
-    if (is.null(summary_data())) return(NULL)
+    if (is.null(summary_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
       table_data <- summary_data()$summary_table2
@@ -280,7 +286,9 @@ server <- function(input, output, session) {
   })
   
   output$summary_bar1 <- renderPlotly({
-    if (is.null(summary_data())) return(NULL)
+    if (is.null(summary_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
       plot_data <- summary_data()$summary_table1 %>% 
@@ -317,7 +325,9 @@ server <- function(input, output, session) {
   })
   
   output$summary_bar2 <- renderPlotly({
-    if (is.null(summary_data())) return(NULL)
+    if (is.null(summary_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
       plot_data <- summary_data()$summary_table2 %>% 
@@ -355,7 +365,8 @@ server <- function(input, output, session) {
   
   ##-- for current potential contribution
   contribution_data <- eventReactive(input$goButton, {
-    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(if_chc())) return(NULL)
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(if_chc()))
+      return(NULL)
     
     data <- raw_data_final %>% 
       filter(year %in% input$year, 
@@ -400,15 +411,24 @@ server <- function(input, output, session) {
          ordering = ordering)
   })
   
+  contribution_table_data <- reactive({
+    if (is.null(contribution_data()))
+      return(NULL)
+    
+    table_data <- contribution_data()$data
+    table_data[table_data == 0] <- "-"
+    
+    table_data
+  })
+  
   output$current_potential_by_city <- renderDT({
-    if (is.null(contribution_data())) return(NULL)
+    if (is.null(contribution_table_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
-      table_data <- contribution_data()$data
-      table_data[table_data == 0] <- "-"
-      
       DT::datatable(
-        table_data,
+        contribution_table_data(),
         rownames = FALSE,
         # extensions = c('FixedColumns', 'Buttons'),
         #filter = 'bottom',
@@ -455,31 +475,38 @@ server <- function(input, output, session) {
   })
 
   output$city_rank_current_potential <- renderPlotly({
-    if (is.null(contribution_data())) return(NULL)
+    if (is.null(contribution_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
       plot_data <- contribution_data()$data %>%
         filter(`城市` == "Total") %>%
         melt()
 
-      plot_ly(hoverinfo = "x+y") %>%
-        add_bars(x = plot_data$variable,
-                 y = plot_data$value,
-                 type = "bar",
-                 text = plot_data$value,
-                 textposition = "outside",
-                 name = "Total",
-                 color = I("#4BACC6")) %>%
+      plot_ly(hoverinfo = "x+y",
+              width = max(nrow(plot_data) * 100, 500)) %>%
+        add_trace(x = plot_data$variable,
+                  y = plot_data$value,
+                  type = "bar",
+                  text = plot_data$value,
+                  textposition = "outside",
+                  name = "Total",
+                  color = I("#4BACC6")) %>%
         layout(
           showlegend = TRUE,
+          legend = list(
+            x = 0,
+            y = 1.2,
+            orientation = 'h'
+          ),
           xaxis = list(
             zeroline = FALSE,
             showline = FALSE,
             showgrid = FALSE,
             title = "",
             mirror = "ticks",
-            tickangle = 45,
-            tickfont = list(size = 8)
+            range = c(-1, nrow(plot_data))
           ),
           yaxis = list(
             zeroline = TRUE,
@@ -495,7 +522,9 @@ server <- function(input, output, session) {
   })
 
   output$channel_distribution_current_potential_by_city <- renderPlotly({
-    if (is.null(contribution_data())) return(NULL)
+    if (is.null(contribution_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
       plot_data <- contribution_data()$data %>%
@@ -509,39 +538,44 @@ server <- function(input, output, session) {
           mutate(y3 = round(`社区` / `Total`, 2))
       }
 
-      p <- plot_ly(hoverinfo = "name+x+y") %>%
-        add_bars(x = plot_data$variable,
-                 y = plot_data$y1,
-                 type = "bar",
-                 name = "城市医院",
-                 color = I("#9BBB59")) %>%
-        add_bars(x = plot_data$variable,
-                 y = plot_data$y2,
-                 type = "bar",
-                 name = "县",
-                 color = I("#4BACC6"))
+      p <- plot_ly(hoverinfo = "name+x+y",
+                   width = max(nrow(plot_data) * 100, 500)) %>%
+        add_trace(x = plot_data$variable,
+                  y = plot_data$y1,
+                  type = "bar",
+                  name = "城市医院",
+                  color = I("#9BBB59")) %>%
+        add_trace(x = plot_data$variable,
+                  y = plot_data$y2,
+                  type = "bar",
+                  name = "县",
+                  color = I("#4BACC6"))
       
       if ("CHC" %in% if_chc()) {
         p <- p %>% 
-          add_bars(x = plot_data$variable,
-                   y = plot_data$y3,
-                   type = "bar",
-                   name = "社区",
-                   color = I("#967846"))
+          add_trace(x = plot_data$variable,
+                    y = plot_data$y3,
+                    type = "bar",
+                    name = "社区",
+                    color = I("#967846"))
       }
       
       p <- p %>%
         layout(
-          showlegend = TRUE,
           barmode = "stack",
+          showlegend = TRUE,
+          legend = list(
+            x = 0,
+            y = 1.2,
+            orientation = 'h'
+          ),
           xaxis = list(
             zeroline = FALSE,
             showline = FALSE,
             showgrid = FALSE,
             title = "",
             mirror = "ticks",
-            tickangle = 45,
-            tickfont = list(size = 8)
+            range = c(-1, nrow(plot_data))
           ),
           yaxis =  list(
             zeroline = TRUE,
@@ -557,7 +591,8 @@ server <- function(input, output, session) {
   
   ##-- for hospital counts
   hospital_data <- eventReactive(contribution_data(), {
-    if (is.null(input$mkt) | is.null(province())) return(NULL)
+    if (is.null(input$mkt) | is.null(province()))
+      return(NULL)
     
     ordering <- contribution_data()$ordering
     
@@ -592,15 +627,24 @@ server <- function(input, output, session) {
     data1
   })
   
+  hospital_table_data <- reactive({
+    if (is.null(hospital_data()))
+      return(NULL)
+    
+    table_data <- hospital_data()
+    table_data[table_data == 0] <- "-"
+    
+    table_data
+  })
+  
   output$channel_dist_hospital_cnt_by_city <- renderDT({
-    if (is.null(hospital_data())) return(NULL)
+    if (is.null(hospital_table_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
-      table_data <- hospital_data()
-      table_data[table_data == 0] <- "-"
-      
       DT::datatable(
-        table_data,
+        hospital_table_data(),
         rownames = FALSE,
         # extensions = c('FixedColumns', 'Buttons'),
         #filter = 'bottom',
@@ -648,7 +692,8 @@ server <- function(input, output, session) {
   
   ##-- for total potential and share
   share_data <- eventReactive(input$goButton, {
-    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(if_chc())) return(NULL)
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(if_chc()))
+      return(NULL)
     
     data <- raw_data_final %>% 
       filter(year %in% input$year, 
@@ -680,24 +725,33 @@ server <- function(input, output, session) {
     data
   })
   
+  share_table_data <- reactive({
+    if (is.null(share_data()) | is.null(contribution_data()))
+      return(NULL)
+    
+    ordering <- contribution_data()$ordering
+    
+    table_data <- share_data() %>% 
+      mutate(`Total potential` = format(`Total potential`, big.interval = 3, big.mark = ","),
+             `TTH` = format(`TTH`, big.interval = 3, big.mark = ","),
+             `Share%` = paste0(`Share%`*100, "%")) %>% 
+      select("city", "Total potential", "TTH", "Share%") %>% 
+      melt(id.vars = "city") %>% 
+      dcast(variable~city, value.var = "value") %>% 
+      select("城市" = "variable", ordering)
+    table_data[table_data == 0 | table_data == "0%"] <- "-"
+    
+    table_data
+  })
+  
   output$total_current_potential_share_by_city <- renderDT({
-    if (is.null(share_data()) | is.null(contribution_data())) return(NULL)
+    if (is.null(share_table_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
-      ordering <- contribution_data()$ordering
-      
-      table_data <- share_data() %>% 
-        mutate(`Total potential` = format(`Total potential`, big.interval = 3, big.mark = ","),
-               `TTH` = format(`TTH`, big.interval = 3, big.mark = ","),
-               `Share%` = paste0(`Share%`*100, "%")) %>% 
-        select("city", "Total potential", "TTH", "Share%") %>% 
-        melt(id.vars = "city") %>% 
-        dcast(variable~city, value.var = "value") %>% 
-        select("城市" = "variable", ordering)
-      table_data[table_data == 0 | table_data == "0%"] <- "-"
-      
       DT::datatable(
-        table_data,
+        share_table_data(),
         rownames = FALSE,
         # extensions = c('FixedColumns', 'Buttons'),
         #filter = 'bottom',
@@ -739,57 +793,58 @@ server <- function(input, output, session) {
   })
   
   output$total_current_potential_share <- renderPlotly({
-    if (is.null(share_data()) | is.null(contribution_data())) return(NULL)
+    if (is.null(share_data()) | is.null(contribution_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
-      ordering = contribution_data()$ordering
+      ordering <-  contribution_data()$ordering
       
       plot_data <- share_data() %>% 
-        mutate(city = factor(city, levels = ordering)) %>% 
+        mutate(city = factor(city, levels = ordering)) %>%
         arrange(city)
       
-      plot_ly(hoverinfo = "name+x+y") %>% 
-        add_bars(x = plot_data$city,
-                 y = plot_data$`Total potential`,
-                 text = plot_data$`Total potential`,
-                 textposition = "outside",
-                 type = "bar",
-                 name = "Total potential",
-                 color = I("#9BBB59")) %>% 
-        add_bars(x = plot_data$city,
-                 y = plot_data$`TTH`,
-                 text = plot_data$`TTH`,
-                 textposition = "outside",
-                 type = "bar",
-                 name = "TTH",
-                 color = I("#4BACC6")) %>% 
+      plot_ly(hoverinfo = "name+x+y",
+              width = max(nrow(plot_data) * 100, 500)) %>% 
+        add_trace(x = plot_data$city,
+                  y = plot_data$`Total potential`,
+                  text = plot_data$`Total potential`,
+                  textposition = "outside",
+                  type = "bar",
+                  name = "Total potential",
+                  color = I("#9BBB59")) %>% 
+        add_trace(x = plot_data$city,
+                  y = plot_data$`TTH`,
+                  text = plot_data$`TTH`,
+                  textposition = "outside",
+                  type = "bar",
+                  name = "TTH",
+                  color = I("#4BACC6")) %>% 
         add_trace(x = plot_data$city,
                   y = plot_data$`Share%`,
                   yaxis = "y2",
+                  text = ~paste0(plot_data$`Share%`*100, "%"),
+                  textposition = "middle top",
+                  textfont = list(color = "#E46C0A"),
                   type = "scatter",
-                  mode = "lines+markers",
+                  mode = "lines+markers+text",
                   name = "Share%",
                   color = I("#E46C0A")) %>% 
-        add_annotations(x = plot_data$city,
-                        y = plot_data$`Share%`,
-                        text = paste0(plot_data$`Share%`*100, "%"),
-                        xref = "x",
-                        yref = "y2",
-                        xanchor = "center",
-                        yanchor = "bottom",
-                        showarrow = FALSE,
-                        font = list(color = "#E46C0A",
-                                    size = 10)) %>% 
         layout(
+          barmode = "group",
           showlegend = TRUE,
+          legend = list(
+            x = 0,
+            y = 1.2,
+            orientation = 'h'
+          ),
           xaxis = list(
             zeroline = FALSE,
             showline = FALSE,
             showgrid = FALSE,
             title = "",
             mirror = "ticks",
-            tickangle = 45,
-            tickfont = list(size = 8)
+            range = c(-1, nrow(plot_data))
           ),
           yaxis =  list(
             side = "left",
@@ -798,7 +853,6 @@ server <- function(input, output, session) {
             showgrid = FALSE,
             showticklabels = FALSE,
             title = "",
-            size = 10,
             mirror = "ticks",
             range = c(0, max(plot_data$`Total potential`, 0.01)*1.2)
           ),
@@ -819,7 +873,8 @@ server <- function(input, output, session) {
   
   ##-- for city potential and share
   city_data <- eventReactive(contribution_data(), {
-    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(contribution_data())) return(NULL)
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(contribution_data()))
+      return(NULL)
     
     ordering <- contribution_data()$ordering
     
@@ -864,24 +919,33 @@ server <- function(input, output, session) {
     data1
   })
   
+  city_table_data <- reactive({
+    if (is.null(city_data()) | is.null(contribution_data()))
+      return(NULL)
+    
+    ordering <- contribution_data()$ordering
+    
+    table_data <- city_data() %>% 
+      mutate(`City hospitals potential` = format(`City hospitals potential`, big.interval = 3, big.mark = ","),
+             `TTH` = format(`TTH`, big.interval = 3, big.mark = ","),
+             `Share%` = paste0(`Share%`*100, "%")) %>% 
+      select("city", "City hospitals potential", "TTH", "Share%") %>% 
+      melt(id.vars = "city") %>% 
+      dcast(variable~city, value.var = "value") %>% 
+      select("城市" = "variable", ordering)
+    table_data[table_data == 0 | table_data == "0%"] <- "-"
+    
+    table_data
+  })
+  
   output$city_hospitals_current_potential_share_by_city <- renderDT({
-    if (is.null(city_data()) | is.null(contribution_data())) return(NULL)
+    if (is.null(city_table_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
-      ordering <- contribution_data()$ordering
-      
-      table_data <- city_data() %>% 
-        mutate(`City hospitals potential` = format(`City hospitals potential`, big.interval = 3, big.mark = ","),
-               `TTH` = format(`TTH`, big.interval = 3, big.mark = ","),
-               `Share%` = paste0(`Share%`*100, "%")) %>% 
-        select("city", "City hospitals potential", "TTH", "Share%") %>% 
-        melt(id.vars = "city") %>% 
-        dcast(variable~city, value.var = "value") %>% 
-        select("城市" = "variable", ordering)
-      table_data[table_data == 0 | table_data == "0%"] <- "-"
-      
       DT::datatable(
-        table_data,
+        city_table_data(),
         rownames = FALSE,
         # extensions = c('FixedColumns', 'Buttons'),
         #filter = 'bottom',
@@ -923,7 +987,9 @@ server <- function(input, output, session) {
   })
   
   output$city_hospitals_current_potential_share <- renderPlotly({
-    if (is.null(city_data()) | is.null(contribution_data())) return(NULL)
+    if (is.null(city_data()) | is.null(contribution_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
       ordering <- contribution_data()$ordering
@@ -932,48 +998,47 @@ server <- function(input, output, session) {
         mutate(city = factor(city, levels = ordering)) %>% 
         arrange(city)
       
-      plot_ly(hoverinfo = "name+x+y") %>% 
-        add_bars(x = plot_data$city,
-                 y = plot_data$`City hospitals potential`,
-                 text = plot_data$`City hospitals potential`,
-                 textposition = "outside",
-                 type = "bar",
-                 name = "City hospitals potential",
-                 color = I("#9BBB59")) %>% 
-        add_bars(x = plot_data$city,
-                 y = plot_data$`TTH`,
-                 text = plot_data$`TTH`,
-                 textposition = "outside",
-                 type = "bar",
-                 name = "TTH",
-                 color = I("#4BACC6")) %>% 
+      plot_ly(hoverinfo = "name+x+y",
+              width = max(nrow(plot_data) * 100, 500)) %>% 
+        add_trace(x = plot_data$city,
+                  y = plot_data$`City hospitals potential`,
+                  text = plot_data$`City hospitals potential`,
+                  textposition = "outside",
+                  type = "bar",
+                  name = "City hospitals potential",
+                  color = I("#9BBB59")) %>% 
+        add_trace(x = plot_data$city,
+                  y = plot_data$`TTH`,
+                  text = plot_data$`TTH`,
+                  textposition = "outside",
+                  type = "bar",
+                  name = "TTH",
+                  color = I("#4BACC6")) %>% 
         add_trace(x = plot_data$city,
                   y = plot_data$`Share%`,
                   yaxis = "y2",
+                  text = paste0(plot_data$`Share%`*100, "%"),
+                  textposition = "middle top",
+                  textfont = list(color = "#E46C0A"),
                   type = "scatter",
-                  mode = "lines+markers",
+                  mode = "lines+markers+text",
                   name = "Share%",
                   color = I("#E46C0A")) %>% 
-        add_annotations(x = plot_data$city,
-                        y = plot_data$`Share%`,
-                        text = paste0(plot_data$`Share%`*100, "%"),
-                        xref = "x",
-                        yref = "y2",
-                        xanchor = "center",
-                        yanchor = "bottom",
-                        showarrow = FALSE,
-                        font = list(color = "#E46C0A",
-                                    size = 10)) %>% 
         layout(
+          barmode = "group",
           showlegend = TRUE,
+          legend = list(
+            x = 0,
+            y = 1.2,
+            orientation = 'h'
+          ),
           xaxis = list(
             zeroline = FALSE,
             showline = FALSE,
             showgrid = FALSE,
             title = "",
             mirror = "ticks",
-            tickangle = 45,
-            tickfont = list(size = 8)
+            range = c(-1, nrow(plot_data))
           ),
           yaxis =  list(
             side = "left",
@@ -1002,7 +1067,8 @@ server <- function(input, output, session) {
   
   ##-- for county potential and share
   county_data <- eventReactive(contribution_data(), {
-    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(contribution_data())) return(NULL)
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(contribution_data()))
+      return(NULL)
     
     ordering <- contribution_data()$ordering
     
@@ -1047,24 +1113,33 @@ server <- function(input, output, session) {
     data1
   })
   
+  county_table_data <- reactive({
+    if (is.null(county_data()) | is.null(contribution_data()))
+      return(NULL)
+    
+    ordering <- contribution_data()$ordering
+    
+    table_data <- county_data() %>% 
+      mutate(`County hospitals potential` = format(`County hospitals potential`, big.interval = 3, big.mark = ","),
+             `TTH` = format(`TTH`, big.interval = 3, big.mark = ","),
+             `Share%` = paste0(`Share%`*100, "%")) %>% 
+      select("city", "County hospitals potential", "TTH", "Share%") %>% 
+      melt(id.vars = "city") %>% 
+      dcast(variable~city, value.var = "value") %>% 
+      select("城市" = "variable", ordering)
+    table_data[table_data == 0 | table_data == "0%"] <- "-"
+    
+    table_data
+  })
+  
   output$County_hospitals_current_potential_share_by_city <- renderDT({
-    if (is.null(county_data()) | is.null(contribution_data())) return(NULL)
+    if (is.null(county_table_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
-      ordering <- contribution_data()$ordering
-      
-      table_data <- county_data() %>% 
-        mutate(`County hospitals potential` = format(`County hospitals potential`, big.interval = 3, big.mark = ","),
-               `TTH` = format(`TTH`, big.interval = 3, big.mark = ","),
-               `Share%` = paste0(`Share%`*100, "%")) %>% 
-        select("city", "County hospitals potential", "TTH", "Share%") %>% 
-        melt(id.vars = "city") %>% 
-        dcast(variable~city, value.var = "value") %>% 
-        select("城市" = "variable", ordering)
-      table_data[table_data == 0 | table_data == "0%"] <- "-"
-      
       DT::datatable(
-        table_data,
+        county_table_data(),
         rownames = FALSE,
         # extensions = c('FixedColumns', 'Buttons'),
         #filter = 'bottom',
@@ -1106,7 +1181,9 @@ server <- function(input, output, session) {
   })
   
   output$county_hospitals_current_potential_share <- renderPlotly({
-    if (is.null(county_data()) | is.null(contribution_data())) return(NULL)
+    if (is.null(county_data()) | is.null(contribution_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
       ordering <- contribution_data()$ordering
@@ -1115,48 +1192,47 @@ server <- function(input, output, session) {
         mutate(city = factor(city, levels = ordering)) %>% 
         arrange(city)
       
-      plot_ly(hoverinfo = "name+x+y") %>% 
-        add_bars(x = plot_data$city,
-                 y = plot_data$`County hospitals potential`,
-                 text = plot_data$`County hospitals potential`,
-                 textposition = "outside",
-                 type = "bar",
-                 name = "County hospitals potential",
-                 color = I("#9BBB59")) %>% 
-        add_bars(x = plot_data$city,
-                 y = plot_data$`TTH`,
-                 text = plot_data$`TTH`,
-                 textposition = "outside",
-                 type = "bar",
-                 name = "TTH",
-                 color = I("#4BACC6")) %>% 
+      plot_ly(hoverinfo = "name+x+y",
+              width = max(nrow(plot_data) * 100, 500)) %>% 
+        add_trace(x = plot_data$city,
+                  y = plot_data$`County hospitals potential`,
+                  text = plot_data$`County hospitals potential`,
+                  textposition = "outside",
+                  type = "bar",
+                  name = "County hospitals potential",
+                  color = I("#9BBB59")) %>% 
+        add_trace(x = plot_data$city,
+                  y = plot_data$`TTH`,
+                  text = plot_data$`TTH`,
+                  textposition = "outside",
+                  type = "bar",
+                  name = "TTH",
+                  color = I("#4BACC6")) %>% 
         add_trace(x = plot_data$city,
                   y = plot_data$`Share%`,
                   yaxis = "y2",
+                  text = paste0(plot_data$`Share%`*100, "%"),
+                  textposition = "middle top",
+                  textfont = list(color = "#E46C0A"),
                   type = "scatter",
-                  mode = "lines+markers",
+                  mode = "lines+markers+text",
                   name = "Share%",
                   color = I("#E46C0A")) %>% 
-        add_annotations(x = plot_data$city,
-                        y = plot_data$`Share%`,
-                        text = paste0(plot_data$`Share%`*100, "%"),
-                        xref = "x",
-                        yref = "y2",
-                        xanchor = "center",
-                        yanchor = "bottom",
-                        showarrow = FALSE,
-                        font = list(color = "#E46C0A",
-                                    size = 10)) %>% 
         layout(
+          barmode = "group",
           showlegend = TRUE,
+          legend = list(
+            x = 0,
+            y = 1.2,
+            orientation = 'h'
+          ),
           xaxis = list(
             zeroline = FALSE,
             showline = FALSE,
             showgrid = FALSE,
             title = "",
             mirror = "ticks",
-            tickangle = 45,
-            tickfont = list(size = 8)
+            range = c(-1, nrow(plot_data))
           ),
           yaxis =  list(
             side = "left",
@@ -1185,8 +1261,10 @@ server <- function(input, output, session) {
   
   ##-- for potential growth
   growth_data <- eventReactive(contribution_data(), {
-    if (input$year == 2016) return(NULL)
-    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(if_chc())) return(NULL)
+    if (input$year == 2016)
+      return(NULL)
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(if_chc()))
+      return(NULL)
     
     data <- raw_data_final %>% 
       filter(year %in% c(as.numeric(input$year)-1, as.numeric(input$year)), 
@@ -1234,30 +1312,39 @@ server <- function(input, output, session) {
     data1
   })
   
+  growth_table_data <- reactive({
+    if (is.null(growth_data()) | is.null(contribution_data()))
+      return(NULL)
+    
+    ordering <- contribution_data()$ordering
+    
+    table_data <- growth_data() %>% 
+      mutate_if(is.numeric, function(x) {paste0(x*100, "%")}) %>% 
+      melt(id.vars = "city") %>% 
+      dcast(variable~city, value.var = "value") %>% 
+      mutate(variable = ifelse(variable == "city_growth",
+                               "城市医院",
+                               ifelse(variable == "county_growth",
+                                      "县",
+                                      ifelse(variable == "chc_growth",
+                                             "社区",
+                                             ifelse(variable == "total_growth",
+                                                    "Total",
+                                                    variable))))) %>% 
+      select("城市" = "variable", ordering)
+    table_data[table_data == 0 | table_data == "0%"] <- "-"
+    
+    table_data
+  })
+  
   output$growth_current_potential_by_city <- renderDT({
-    if (is.null(growth_data()) | is.null(contribution_data())) return(NULL)
+    if (is.null(growth_table_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
-      ordering <- contribution_data()$ordering
-      
-      table_data <- growth_data() %>% 
-        mutate_if(is.numeric, function(x) {paste0(x*100, "%")}) %>% 
-        melt(id.vars = "city") %>% 
-        dcast(variable~city, value.var = "value") %>% 
-        mutate(variable = ifelse(variable == "city_growth",
-                                 "城市医院",
-                                 ifelse(variable == "county_growth",
-                                        "县",
-                                        ifelse(variable == "chc_growth",
-                                               "社区",
-                                               ifelse(variable == "total_growth",
-                                                      "Total",
-                                                      variable))))) %>% 
-        select("城市" = "variable", ordering)
-      table_data[table_data == 0 | table_data == "0%"] <- "-"
-      
       DT::datatable(
-        table_data,
+        growth_table_data(),
         rownames = FALSE,
         # extensions = c('FixedColumns', 'Buttons'),
         #filter = 'bottom',
@@ -1299,7 +1386,9 @@ server <- function(input, output, session) {
   })
   
   output$growth_current_potential_by_city_chart <- renderPlotly({
-    if (is.null(growth_data()) | is.null(contribution_data())) return(NULL)
+    if (is.null(growth_data()) | is.null(contribution_data()))
+      return(NULL)
+    
     input$goButton
     isolate({
       ordering <- contribution_data()$ordering
@@ -1308,31 +1397,37 @@ server <- function(input, output, session) {
         mutate(city = factor(city, levels = ordering)) %>% 
         arrange(city)
       
-      plot_ly(hoverinfo = "name+x+y") %>% 
-        add_bars(x = plot_data$city,
-                 y = plot_data$city_growth * 100,
-                 text = paste0(plot_data$city_growth*100, "%"),
-                 textposition = "outside",
-                 type = "bar",
-                 name = "城市医院",
-                 color = I("#9BBB59")) %>% 
-        add_bars(x = plot_data$city,
-                 y = plot_data$county_growth * 100,
-                 text = paste0(plot_data$county_growth*100, "%"),
-                 textposition = "outside",
-                 type = "bar",
-                 name = "县",
-                 color = I("#4BACC6")) %>% 
+      plot_ly(hoverinfo = "name+x+y",
+              width = max(nrow(plot_data) * 100, 500)) %>% 
+        add_trace(x = plot_data$city,
+                  y = plot_data$city_growth * 100,
+                  text = paste0(plot_data$city_growth*100, "%"),
+                  textposition = "outside",
+                  type = "bar",
+                  name = "城市医院",
+                  color = I("#9BBB59")) %>% 
+        add_trace(x = plot_data$city,
+                  y = plot_data$county_growth * 100,
+                  text = paste0(plot_data$county_growth*100, "%"),
+                  textposition = "outside",
+                  type = "bar",
+                  name = "县",
+                  color = I("#4BACC6")) %>% 
         layout(
+          barmode = "group",
           showlegend = TRUE,
+          legend = list(
+            x = 0,
+            y = 1.2,
+            orientation = 'h'
+          ),
           xaxis = list(
             zeroline = FALSE,
             showline = FALSE,
             showgrid = FALSE,
             title = "",
             mirror = "ticks",
-            tickangle = 45,
-            tickfont = list(size = 8)
+            range = c(-1, nrow(plot_data))
           ),
           yaxis =  list(
             zeroline = TRUE,
@@ -1419,6 +1514,7 @@ server <- function(input, output, session) {
     })
   })
   
+  ##-- quadrant
   segmentation <- reactive({
     if (is.null(detail_data()) | is.null(input$potential_div) | is.null(input$share_div))
       return(NULL)
@@ -1446,7 +1542,9 @@ server <- function(input, output, session) {
   })
   
   output$opportunistic <- renderDT({
-    if (is.null(segmentation())) return(NULL)
+    if (is.null(segmentation()))
+      return(NULL)
+    
     # input$refresh
     # isolate({
       table_data <- quadrant(segmentation(), seg = 1, chc = input$chc)
@@ -1488,7 +1586,9 @@ server <- function(input, output, session) {
   })
   
   output$defend <- renderDT({
-    if (is.null(segmentation())) return(NULL)
+    if (is.null(segmentation()))
+      return(NULL)
+    
     # input$refresh
     # isolate({
       table_data <- quadrant(segmentation(), seg = 2, chc = input$chc)
@@ -1530,7 +1630,9 @@ server <- function(input, output, session) {
   })
   
   output$expend <- renderDT({
-    if (is.null(segmentation())) return(NULL)
+    if (is.null(segmentation()))
+      return(NULL)
+    
     # input$refresh
     # isolate({
       table_data <- quadrant(segmentation(), seg = 3, chc = input$chc)
@@ -1572,7 +1674,9 @@ server <- function(input, output, session) {
   })
   
   output$compete <- renderDT({
-    if (is.null(segmentation())) return(NULL)
+    if (is.null(segmentation()))
+      return(NULL)
+    
     # input$refresh
     # isolate({
       table_data <- quadrant(segmentation(), seg = 4, chc = input$chc)
@@ -1613,8 +1717,10 @@ server <- function(input, output, session) {
     # })
   })
   
+  ##-- scatter plot
   scatter_plot <- reactive({
-    if (is.null(segmentation()) | is.null(input$potential_div) | is.null(input$share_div)) return(NULL)
+    if (is.null(segmentation()) | is.null(input$potential_div) | is.null(input$share_div))
+      return(NULL)
     
     plot_data <- segmentation()
     
@@ -1668,95 +1774,107 @@ server <- function(input, output, session) {
   })
   
   output$scatter <- renderPlotly({
-    if (is.null(scatter_plot())) return(NULL)
+    if (is.null(scatter_plot()))
+      return(NULL)
+    
     # input$refresh
     # isolate({
       scatter_plot()
     # })
   })
   
-  output$detail <- renderDT({
-    if (is.null(segmentation())) return(NULL)
+  ##-- layout table
+  detail_table_data <- reactive({
+    if (is.null(segmentation()))
+      return(NULL)
+    
     # input$refresh
     # isolate({
-      table_data <- segmentation() %>% 
-        mutate(segment = ifelse(segment == 1,
-                                "Opportunistic",
-                                ifelse(segment == 2,
-                                       "Defend",
-                                       ifelse(segment == 3,
-                                              "Expend",
-                                              ifelse(segment == 4,
-                                                     "Compete",
-                                                     0)))))
+    table_data <- segmentation() %>% 
+      mutate(segment = ifelse(segment == 1,
+                              "Opportunistic",
+                              ifelse(segment == 2,
+                                     "Defend",
+                                     ifelse(segment == 3,
+                                            "Expend",
+                                            ifelse(segment == 4,
+                                                   "Compete",
+                                                   0)))))
+    
+    if (input$chc == "no") {
+      total_data <- data.table(`City` = "Total",
+                               `Type` = NA,
+                               `Terminal#` = sum(table_data$terminal, na.rm = TRUE),
+                               `Potential-2020` = sum(table_data$potential_2020, na.rm = TRUE),
+                               `CHC Potential-2020` = sum(table_data$chc_2020, na.rm = TRUE),
+                               `2020 Potential Con%` = 1,
+                               `Potential-2018` = sum(table_data$potential_2018, na.rm = TRUE),
+                               `CHC Potential-2018` = sum(table_data$chc_2018, na.rm = TRUE),
+                               `2018 Potential Con%` = 1,
+                               `2018 Molecule Sales` = sum(table_data$molecule_2018, na.rm = TRUE),
+                               `Share%(TTH/Molecule)` = sum(table_data$internal, na.rm = TRUE) / sum(table_data$molecule_2018, na.rm = TRUE),
+                               `Internal` = sum(table_data$internal, na.rm = TRUE),
+                               stringsAsFactors = FALSE)
       
-      if (input$chc == "no") {
-        total_data <- data.table(`City` = "Total",
-                                 `Type` = NA,
-                                 `Terminal#` = sum(table_data$terminal, na.rm = TRUE),
-                                 `Potential-2020` = sum(table_data$potential_2020, na.rm = TRUE),
-                                 `CHC Potential-2020` = sum(table_data$chc_2020, na.rm = TRUE),
-                                 `2020 Potential Con%` = 1,
-                                 `Potential-2018` = sum(table_data$potential_2018, na.rm = TRUE),
-                                 `CHC Potential-2018` = sum(table_data$chc_2018, na.rm = TRUE),
-                                 `2018 Potential Con%` = 1,
-                                 `2018 Molecule Sales` = sum(table_data$molecule_2018, na.rm = TRUE),
-                                 `Share%(TTH/Molecule)` = sum(table_data$internal, na.rm = TRUE) / sum(table_data$molecule_2018, na.rm = TRUE),
-                                 `Internal` = sum(table_data$internal, na.rm = TRUE),
-                                 stringsAsFactors = FALSE)
-        
-        table_data1 <- table_data %>% 
-          select("City" = "city",
-                 "Type" = "segment",
-                 "Terminal#" = "terminal",
-                 "Potential-2020" = "potential_2020",
-                 "CHC Potential-2020" = "chc_2020",
-                 "2020 Potential Con%" = "potential_con_2020",
-                 "Potential-2018" = "potential_2018",
-                 "CHC Potential-2018" = "chc_2018",
-                 "2018 Potential Con%" = "potential_con_2018",
-                 "2018 Molecule Sales" = "molecule_2018",
-                 "Share%(TTH/Molecule)" = "share_mol",
-                 "Internal" = "internal")
-        
-      } else if (input$chc == "yes") {
-        total_data <- data.table(`City` = "Total",
-                                 `Type` = NA,
-                                 `Terminal#` = sum(table_data$terminal, na.rm = TRUE),
-                                 `Potential-2020` = sum(table_data$potential_chc_2020, na.rm = TRUE),
-                                 `CHC Potential-2020` = sum(table_data$chc_2020, na.rm = TRUE),
-                                 `2020 Potential Con%` = 1,
-                                 `Potential-2018` = sum(table_data$potential_chc_2018, na.rm = TRUE),
-                                 `CHC Potential-2018` = sum(table_data$chc_2018, na.rm = TRUE),
-                                 `2018 Potential Con%` = 1,
-                                 `2018 Molecule Sales` = sum(table_data$molecule_2018, na.rm = TRUE),
-                                 `Share%(TTH/Molecule)` = sum(table_data$internal, na.rm = TRUE) / sum(table_data$molecule_2018, na.rm = TRUE),
-                                 `Internal` = sum(table_data$internal, na.rm = TRUE),
-                                 stringsAsFactors = FALSE)
-        
-        table_data1 <- table_data %>% 
-          select("City" = "city",
-                 "Type" = "segment",
-                 "Terminal#" = "terminal",
-                 "Potential-2020" = "potential_chc_2020",
-                 "CHC Potential-2020" = "chc_2020",
-                 "2020 Potential Con%" = "potential_chc_con_2020",
-                 "Potential-2018" = "potential_chc_2018",
-                 "CHC Potential-2018" = "chc_2018",
-                 "2018 Potential Con%" = "potential_chc_con_2018",
-                 "2018 Molecule Sales" = "molecule_2018",
-                 "Share%(TTH/Molecule)" = "share_mol",
-                 "Internal" = "internal")
-        
-      } else {
-        stop("Detail Table CHC Error.")
-      }
+      table_data1 <- table_data %>% 
+        select("City" = "city",
+               "Type" = "segment",
+               "Terminal#" = "terminal",
+               "Potential-2020" = "potential_2020",
+               "CHC Potential-2020" = "chc_2020",
+               "2020 Potential Con%" = "potential_con_2020",
+               "Potential-2018" = "potential_2018",
+               "CHC Potential-2018" = "chc_2018",
+               "2018 Potential Con%" = "potential_con_2018",
+               "2018 Molecule Sales" = "molecule_2018",
+               "Share%(TTH/Molecule)" = "share_mol",
+               "Internal" = "internal")
       
-      table_data2 <- bind_rows(total_data, table_data1)
-      table_data2[table_data2 == 0] <- "-"
+    } else if (input$chc == "yes") {
+      total_data <- data.table(`City` = "Total",
+                               `Type` = NA,
+                               `Terminal#` = sum(table_data$terminal, na.rm = TRUE),
+                               `Potential-2020` = sum(table_data$potential_chc_2020, na.rm = TRUE),
+                               `CHC Potential-2020` = sum(table_data$chc_2020, na.rm = TRUE),
+                               `2020 Potential Con%` = 1,
+                               `Potential-2018` = sum(table_data$potential_chc_2018, na.rm = TRUE),
+                               `CHC Potential-2018` = sum(table_data$chc_2018, na.rm = TRUE),
+                               `2018 Potential Con%` = 1,
+                               `2018 Molecule Sales` = sum(table_data$molecule_2018, na.rm = TRUE),
+                               `Share%(TTH/Molecule)` = sum(table_data$internal, na.rm = TRUE) / sum(table_data$molecule_2018, na.rm = TRUE),
+                               `Internal` = sum(table_data$internal, na.rm = TRUE),
+                               stringsAsFactors = FALSE)
       
+      table_data1 <- table_data %>% 
+        select("City" = "city",
+               "Type" = "segment",
+               "Terminal#" = "terminal",
+               "Potential-2020" = "potential_chc_2020",
+               "CHC Potential-2020" = "chc_2020",
+               "2020 Potential Con%" = "potential_chc_con_2020",
+               "Potential-2018" = "potential_chc_2018",
+               "CHC Potential-2018" = "chc_2018",
+               "2018 Potential Con%" = "potential_chc_con_2018",
+               "2018 Molecule Sales" = "molecule_2018",
+               "Share%(TTH/Molecule)" = "share_mol",
+               "Internal" = "internal")
+      
+    } else {
+      stop("Detail Table CHC Error.")
+    }
+    
+    table_data2 <- bind_rows(total_data, table_data1)
+    table_data2[table_data2 == 0] <- "-"
+    
+    table_data2
+  })
+  
+  output$detail <- renderDT({
+    if (is.null(detail_table_data()))
+      return(NULL)
+    
       DT::datatable(
-        table_data2,
+        detail_table_data(),
         rownames = FALSE,
         options = list(
           columnDefs = list(
@@ -1800,7 +1918,34 @@ server <- function(input, output, session) {
     # })
   })
   
-  
-  
+  ##-- download
+  output$download <- downloadHandler(
+    filename = function() {
+      paste0(input$mkt, "_[", paste0(input$province, collapse = "_"), "]_[", input$chc, "_CHC].xlsx")
+    },
+    
+    content = function(file) {
+      download_wb <- createWorkbook()
+      addWorksheet(download_wb, "Contribution of Potential")
+      addWorksheet(download_wb, "Distribuion of Hospital Counts")
+      addWorksheet(download_wb, "Total Potential and Share")
+      addWorksheet(download_wb, "City Potential and Share")
+      addWorksheet(download_wb, "County Potential and Share")
+      addWorksheet(download_wb, "Potential Growth")
+      addWorksheet(download_wb, "Details")
+      
+      writeDataTable(download_wb, "Contribution of Potential", contribution_table_data())
+      writeDataTable(download_wb, "Distribuion of Hospital Counts", hospital_table_data())
+      writeDataTable(download_wb, "Total Potential and Share", share_table_data())
+      writeDataTable(download_wb, "City Potential and Share", city_table_data())
+      writeDataTable(download_wb, "County Potential and Share", county_table_data())
+      if (input$year != "2016") {
+        writeDataTable(download_wb, "Potential Growth", growth_table_data())
+      }
+      writeDataTable(download_wb, "Details", detail_table_data())
+      
+      saveWorkbook(download_wb, file, overwrite = TRUE)
+    }
+  )
   
 }

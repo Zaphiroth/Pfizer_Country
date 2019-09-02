@@ -16,18 +16,22 @@ ui <- dashboardPage(
     selectInput("chc", "Contain CHC", choices = c("Yes" = "yes", "No" = "no"), selected = "yes", multiple = FALSE),
     
     br(),
-    fluidRow(tags$div(
-      tags$div(column(12, actionButton("goButton", "Go!", width = "200px")),
-               style = "display:inline-block;margin-down: 1px;vertical-align:middle"),
-      
-      tags$style(".skin-blue .sidebar a { color: #444; }")
-      
-      # tags$div(column(#offset = 1, 
-      #   2,
-      #   downloadButton(outputId = "downloadData", 
-      #                  label = "Download")),
-      #   style = "display:inline-block;margin-down: 1px;vertical-align:middle")
-      ))
+    fluidRow(
+      tags$div(
+        column(12,
+               tags$div(actionButton("goButton", "Go!", width = "90px"),
+                        style = "display:inline-block; margin-down:1px; vertical-align:middle;"),
+               tags$div(downloadButton("download", "Download"),
+                        style = "display:inline-block; margin-down:1px; vertical-align:middle;")),
+        tags$style(".skin-blue .sidebar a { color: #444; }")
+        
+        # tags$div(column(#offset = 1, 
+        #   2,
+        #   downloadButton(outputId = "downloadData", 
+        #                  label = "Download")),
+        #   style = "display:inline-block;margin-down: 1px;vertical-align:middle")
+      )
+    )
   ),
   
   dashboardBody(
@@ -110,14 +114,14 @@ ui <- dashboardPage(
                    br(), br(),
                    h5("2, City Rank of Current Potential Contribution(CU/Mn)"),
                    br(),
-                   div(plotlyOutput("city_rank_current_potential", height = "200px"),
-                       style = "font-size:90%"),
+                   div(plotlyOutput("city_rank_current_potential", height = "300px"),
+                       style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
                    h5("3, Channel Distribution of Current Potential Contribution by City(CU/Mn)"),
                    br(),
-                   div(plotlyOutput("channel_distribution_current_potential_by_city", height = "200px"),
-                       style = "font-size:90%")
+                   div(plotlyOutput("channel_distribution_current_potential_by_city", height = "300px"),
+                       style = "font-size:90%; overflow-x:scroll;")
                  )
                ),
                
@@ -154,8 +158,8 @@ ui <- dashboardPage(
                    br(), br(),
                    h5("2, Total Current Potential VS. Pfizer(CU/Mn)"),
                    br(),
-                   div(plotlyOutput("total_current_potential_share", height = "200px"),
-                       style = "font-size:90%")
+                   div(plotlyOutput("total_current_potential_share", height = "300px"),
+                       style = "font-size:90%; overflow-x:scroll;")
                  )
                ),
                
@@ -176,8 +180,8 @@ ui <- dashboardPage(
                    br(), br(),
                    h5("2, City Hospitals Current Potential VS. Pfizer(CU/Mn)"),
                    br(),
-                   div(plotlyOutput("city_hospitals_current_potential_share", height = "200px"),
-                       style = "font-size:90%")
+                   div(plotlyOutput("city_hospitals_current_potential_share", height = "300px"),
+                       style = "font-size:90%; overflow-x:scroll;")
                  )
                ),
                
@@ -198,8 +202,8 @@ ui <- dashboardPage(
                    br(), br(),
                    h5("2, County Hospitals Current Potential VS. Pfizer(CU/Mn)"),
                    br(),
-                   div(plotlyOutput("county_hospitals_current_potential_share", height = "200px"),
-                       style = "font-size:90%")
+                   div(plotlyOutput("county_hospitals_current_potential_share", height = "300px"),
+                       style = "font-size:90%; overflow-x:scroll;")
                  )
                ),
                
@@ -220,8 +224,8 @@ ui <- dashboardPage(
                    br(), br(),
                    h5("2, Current Potential Growth Between City Hospitals and County Hospitals by City(CU/Mn)"),
                    br(),
-                   div(plotlyOutput("growth_current_potential_by_city_chart", height = "200px"),
-                       style = "font-size:90%")
+                   div(plotlyOutput("growth_current_potential_by_city_chart", height = "300px"),
+                       style = "font-size:90%; overflow-x:scroll;")
                  )
                )
       ),
