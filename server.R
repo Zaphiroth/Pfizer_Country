@@ -150,7 +150,7 @@ server <- function(input, output, session) {
            summary_table2 = data4)
     })
   
-  output$summary_table <- renderDT({
+  output$summary_table <- renderDataTable({
     if (is.null(summary_data()))
       return(NULL)
     
@@ -198,7 +198,7 @@ server <- function(input, output, session) {
     })
   })
   
-  output$summary_table1 <- renderDT({
+  output$summary_table1 <- renderDataTable({
     if (is.null(summary_data()))
       return(NULL)
     
@@ -240,7 +240,7 @@ server <- function(input, output, session) {
     })
   })
   
-  output$summary_table2 <- renderDT({
+  output$summary_table2 <- renderDataTable({
     if (is.null(summary_data()))
       return(NULL)
     
@@ -421,7 +421,7 @@ server <- function(input, output, session) {
     table_data
   })
   
-  output$current_potential_by_city <- renderDT({
+  output$current_potential_by_city <- renderDataTable({
     if (is.null(contribution_table_data()))
       return(NULL)
     
@@ -637,7 +637,7 @@ server <- function(input, output, session) {
     table_data
   })
   
-  output$channel_dist_hospital_cnt_by_city <- renderDT({
+  output$channel_dist_hospital_cnt_by_city <- renderDataTable({
     if (is.null(hospital_table_data()))
       return(NULL)
     
@@ -744,7 +744,7 @@ server <- function(input, output, session) {
     table_data
   })
   
-  output$total_current_potential_share_by_city <- renderDT({
+  output$total_current_potential_share_by_city <- renderDataTable({
     if (is.null(share_table_data()))
       return(NULL)
     
@@ -938,7 +938,7 @@ server <- function(input, output, session) {
     table_data
   })
   
-  output$city_hospitals_current_potential_share_by_city <- renderDT({
+  output$city_hospitals_current_potential_share_by_city <- renderDataTable({
     if (is.null(city_table_data()))
       return(NULL)
     
@@ -1132,7 +1132,7 @@ server <- function(input, output, session) {
     table_data
   })
   
-  output$County_hospitals_current_potential_share_by_city <- renderDT({
+  output$County_hospitals_current_potential_share_by_city <- renderDataTable({
     if (is.null(county_table_data()))
       return(NULL)
     
@@ -1337,7 +1337,7 @@ server <- function(input, output, session) {
     table_data
   })
   
-  output$growth_current_potential_by_city <- renderDT({
+  output$growth_current_potential_by_city <- renderDataTable({
     if (is.null(growth_table_data()))
       return(NULL)
     
@@ -1541,7 +1541,7 @@ server <- function(input, output, session) {
     })
   })
   
-  output$opportunistic <- renderDT({
+  output$opportunistic <- renderDataTable({
     if (is.null(segmentation()))
       return(NULL)
     
@@ -1585,7 +1585,7 @@ server <- function(input, output, session) {
     # })
   })
   
-  output$defend <- renderDT({
+  output$defend <- renderDataTable({
     if (is.null(segmentation()))
       return(NULL)
     
@@ -1629,7 +1629,7 @@ server <- function(input, output, session) {
     # })
   })
   
-  output$expend <- renderDT({
+  output$expend <- renderDataTable({
     if (is.null(segmentation()))
       return(NULL)
     
@@ -1673,7 +1673,7 @@ server <- function(input, output, session) {
     # })
   })
   
-  output$compete <- renderDT({
+  output$compete <- renderDataTable({
     if (is.null(segmentation()))
       return(NULL)
     
@@ -1869,7 +1869,7 @@ server <- function(input, output, session) {
     table_data2
   })
   
-  output$detail <- renderDT({
+  output$detail <- renderDataTable({
     if (is.null(detail_table_data()))
       return(NULL)
     
