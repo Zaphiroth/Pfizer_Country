@@ -151,8 +151,9 @@ server <- function(input, output, session) {
     })
   
   output$summary_table <- renderDataTable({
-    if (is.null(summary_data()))
+    if (is.null(summary_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -199,8 +200,9 @@ server <- function(input, output, session) {
   })
   
   output$summary_table1 <- renderDataTable({
-    if (is.null(summary_data()))
+    if (is.null(summary_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -241,8 +243,9 @@ server <- function(input, output, session) {
   })
   
   output$summary_table2 <- renderDataTable({
-    if (is.null(summary_data()))
+    if (is.null(summary_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -286,8 +289,9 @@ server <- function(input, output, session) {
   })
   
   output$summary_bar1 <- renderPlotly({
-    if (is.null(summary_data()))
+    if (is.null(summary_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -299,6 +303,7 @@ server <- function(input, output, session) {
                  y = plot_data$value,
                  type = "bar",
                  text = plot_data$value,
+                 textfont = list(size = 15),
                  textposition = "outside",
                  color = I("#93CDDD")) %>% 
         layout(
@@ -325,8 +330,9 @@ server <- function(input, output, session) {
   })
   
   output$summary_bar2 <- renderPlotly({
-    if (is.null(summary_data()))
+    if (is.null(summary_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -338,6 +344,7 @@ server <- function(input, output, session) {
                  y = plot_data$value,
                  type = "bar",
                  text = plot_data$value,
+                 textfont = list(size = 15),
                  textposition = "outside",
                  color = I("#93CDDD")) %>% 
         layout(
@@ -365,8 +372,9 @@ server <- function(input, output, session) {
   
   ##-- for current potential contribution
   contribution_data <- eventReactive(input$goButton, {
-    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(if_chc()))
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(if_chc())) {
       return(NULL)
+    }
     
     data <- raw_data_final %>% 
       filter(year %in% input$year, 
@@ -412,8 +420,9 @@ server <- function(input, output, session) {
   })
   
   contribution_table_data <- reactive({
-    if (is.null(contribution_data()))
+    if (is.null(contribution_data())) {
       return(NULL)
+    }
     
     table_data <- contribution_data()$data
     table_data[table_data == 0] <- "-"
@@ -422,8 +431,9 @@ server <- function(input, output, session) {
   })
   
   output$current_potential_by_city <- renderDataTable({
-    if (is.null(contribution_table_data()))
+    if (is.null(contribution_table_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -475,8 +485,9 @@ server <- function(input, output, session) {
   })
 
   output$city_rank_current_potential <- renderPlotly({
-    if (is.null(contribution_data()))
+    if (is.null(contribution_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -490,6 +501,7 @@ server <- function(input, output, session) {
                   y = plot_data$value,
                   type = "bar",
                   text = plot_data$value,
+                  textfont = list(size = 15),
                   textposition = "outside",
                   name = "Total",
                   color = I("#4BACC6")) %>%
@@ -522,8 +534,9 @@ server <- function(input, output, session) {
   })
 
   output$channel_distribution_current_potential_by_city <- renderPlotly({
-    if (is.null(contribution_data()))
+    if (is.null(contribution_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -543,11 +556,19 @@ server <- function(input, output, session) {
         add_trace(x = plot_data$variable,
                   y = plot_data$y1,
                   type = "bar",
+                  text = plot_data$y1,
+                  textfont = list(color = "#FFF",
+                                  size = 15),
+                  textposition = "auto",
                   name = "城市医院",
                   color = I("#9BBB59")) %>%
         add_trace(x = plot_data$variable,
                   y = plot_data$y2,
                   type = "bar",
+                  text = plot_data$y2,
+                  textfont = list(color = "#FFF",
+                                  size = 15),
+                  textposition = "auto",
                   name = "县",
                   color = I("#4BACC6"))
       
@@ -556,6 +577,10 @@ server <- function(input, output, session) {
           add_trace(x = plot_data$variable,
                     y = plot_data$y3,
                     type = "bar",
+                    text = plot_data$y3,
+                    textfont = list(color = "#FFF",
+                                    size = 15),
+                    textposition = "auto",
                     name = "社区",
                     color = I("#967846"))
       }
@@ -591,8 +616,9 @@ server <- function(input, output, session) {
   
   ##-- for hospital counts
   hospital_data <- eventReactive(contribution_data(), {
-    if (is.null(input$mkt) | is.null(province()))
+    if (is.null(input$mkt) | is.null(province())) {
       return(NULL)
+    }
     
     ordering <- contribution_data()$ordering
     
@@ -628,8 +654,9 @@ server <- function(input, output, session) {
   })
   
   hospital_table_data <- reactive({
-    if (is.null(hospital_data()))
+    if (is.null(hospital_data())) {
       return(NULL)
+    }
     
     table_data <- hospital_data()
     table_data[table_data == 0] <- "-"
@@ -638,8 +665,9 @@ server <- function(input, output, session) {
   })
   
   output$channel_dist_hospital_cnt_by_city <- renderDataTable({
-    if (is.null(hospital_table_data()))
+    if (is.null(hospital_table_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -692,8 +720,9 @@ server <- function(input, output, session) {
   
   ##-- for total potential and share
   share_data <- eventReactive(input$goButton, {
-    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(if_chc()))
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(if_chc())) {
       return(NULL)
+    }
     
     data <- raw_data_final %>% 
       filter(year %in% input$year, 
@@ -726,8 +755,9 @@ server <- function(input, output, session) {
   })
   
   share_table_data <- reactive({
-    if (is.null(share_data()) | is.null(contribution_data()))
+    if (is.null(share_data()) | is.null(contribution_data())) {
       return(NULL)
+    }
     
     ordering <- contribution_data()$ordering
     
@@ -745,8 +775,9 @@ server <- function(input, output, session) {
   })
   
   output$total_current_potential_share_by_city <- renderDataTable({
-    if (is.null(share_table_data()))
+    if (is.null(share_table_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -793,8 +824,9 @@ server <- function(input, output, session) {
   })
   
   output$total_current_potential_share <- renderPlotly({
-    if (is.null(share_data()) | is.null(contribution_data()))
+    if (is.null(share_data()) | is.null(contribution_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -809,29 +841,32 @@ server <- function(input, output, session) {
         add_trace(x = plot_data$city,
                   y = plot_data$`Total potential`,
                   text = plot_data$`Total potential`,
+                  textfont = list(size = 15),
                   textposition = "outside",
                   type = "bar",
                   name = "Total potential",
                   color = I("#9BBB59")) %>% 
-        add_trace(x = plot_data$city,
-                  y = plot_data$`TTH`,
-                  text = plot_data$`TTH`,
-                  textposition = "outside",
-                  type = "bar",
-                  name = "TTH",
-                  color = I("#4BACC6")) %>% 
+        # add_trace(x = plot_data$city,
+        #           y = plot_data$`TTH`,
+        #           text = plot_data$`TTH`,
+        #           textfont = list(size = 15),
+        #           textposition = "outside",
+        #           type = "bar",
+        #           name = "TTH",
+        #           color = I("#4BACC6")) %>% 
         add_trace(x = plot_data$city,
                   y = plot_data$`Share%`,
                   yaxis = "y2",
                   text = ~paste0(plot_data$`Share%`*100, "%"),
+                  textfont = list(color = "#E46C0A",
+                                  size = 15),
                   textposition = "middle top",
-                  textfont = list(color = "#E46C0A"),
                   type = "scatter",
                   mode = "lines+markers+text",
                   name = "Share%",
                   color = I("#E46C0A")) %>% 
         layout(
-          barmode = "group",
+          # barmode = "group",
           showlegend = TRUE,
           legend = list(
             x = 0,
@@ -873,8 +908,9 @@ server <- function(input, output, session) {
   
   ##-- for city potential and share
   city_data <- eventReactive(contribution_data(), {
-    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(contribution_data()))
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(contribution_data())) {
       return(NULL)
+    }
     
     ordering <- contribution_data()$ordering
     
@@ -920,8 +956,9 @@ server <- function(input, output, session) {
   })
   
   city_table_data <- reactive({
-    if (is.null(city_data()) | is.null(contribution_data()))
+    if (is.null(city_data()) | is.null(contribution_data())) {
       return(NULL)
+    }
     
     ordering <- contribution_data()$ordering
     
@@ -939,8 +976,9 @@ server <- function(input, output, session) {
   })
   
   output$city_hospitals_current_potential_share_by_city <- renderDataTable({
-    if (is.null(city_table_data()))
+    if (is.null(city_table_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -987,8 +1025,9 @@ server <- function(input, output, session) {
   })
   
   output$city_hospitals_current_potential_share <- renderPlotly({
-    if (is.null(city_data()) | is.null(contribution_data()))
+    if (is.null(city_data()) | is.null(contribution_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -1003,29 +1042,32 @@ server <- function(input, output, session) {
         add_trace(x = plot_data$city,
                   y = plot_data$`City hospitals potential`,
                   text = plot_data$`City hospitals potential`,
+                  textfont = list(size = 15),
                   textposition = "outside",
                   type = "bar",
                   name = "City hospitals potential",
                   color = I("#9BBB59")) %>% 
-        add_trace(x = plot_data$city,
-                  y = plot_data$`TTH`,
-                  text = plot_data$`TTH`,
-                  textposition = "outside",
-                  type = "bar",
-                  name = "TTH",
-                  color = I("#4BACC6")) %>% 
+        # add_trace(x = plot_data$city,
+        #           y = plot_data$`TTH`,
+        #           text = plot_data$`TTH`,
+        #           textfont = list(size = 15),
+        #           textposition = "outside",
+        #           type = "bar",
+        #           name = "TTH",
+        #           color = I("#4BACC6")) %>% 
         add_trace(x = plot_data$city,
                   y = plot_data$`Share%`,
                   yaxis = "y2",
                   text = paste0(plot_data$`Share%`*100, "%"),
+                  textfont = list(color = "#E46C0A",
+                                  size = 15),
                   textposition = "middle top",
-                  textfont = list(color = "#E46C0A"),
                   type = "scatter",
                   mode = "lines+markers+text",
                   name = "Share%",
                   color = I("#E46C0A")) %>% 
         layout(
-          barmode = "group",
+          # barmode = "group",
           showlegend = TRUE,
           legend = list(
             x = 0,
@@ -1067,8 +1109,9 @@ server <- function(input, output, session) {
   
   ##-- for county potential and share
   county_data <- eventReactive(contribution_data(), {
-    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(contribution_data()))
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(contribution_data())) {
       return(NULL)
+    }
     
     ordering <- contribution_data()$ordering
     
@@ -1114,8 +1157,9 @@ server <- function(input, output, session) {
   })
   
   county_table_data <- reactive({
-    if (is.null(county_data()) | is.null(contribution_data()))
+    if (is.null(county_data()) | is.null(contribution_data())) {
       return(NULL)
+    }
     
     ordering <- contribution_data()$ordering
     
@@ -1133,8 +1177,9 @@ server <- function(input, output, session) {
   })
   
   output$County_hospitals_current_potential_share_by_city <- renderDataTable({
-    if (is.null(county_table_data()))
+    if (is.null(county_table_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -1181,8 +1226,9 @@ server <- function(input, output, session) {
   })
   
   output$county_hospitals_current_potential_share <- renderPlotly({
-    if (is.null(county_data()) | is.null(contribution_data()))
+    if (is.null(county_data()) | is.null(contribution_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -1197,29 +1243,32 @@ server <- function(input, output, session) {
         add_trace(x = plot_data$city,
                   y = plot_data$`County hospitals potential`,
                   text = plot_data$`County hospitals potential`,
+                  textfont = list(size = 15),
                   textposition = "outside",
                   type = "bar",
                   name = "County hospitals potential",
                   color = I("#9BBB59")) %>% 
-        add_trace(x = plot_data$city,
-                  y = plot_data$`TTH`,
-                  text = plot_data$`TTH`,
-                  textposition = "outside",
-                  type = "bar",
-                  name = "TTH",
-                  color = I("#4BACC6")) %>% 
+        # add_trace(x = plot_data$city,
+        #           y = plot_data$`TTH`,
+        #           text = plot_data$`TTH`,
+        #           textfont = list(size = 15),
+        #           textposition = "outside",
+        #           type = "bar",
+        #           name = "TTH",
+        #           color = I("#4BACC6")) %>% 
         add_trace(x = plot_data$city,
                   y = plot_data$`Share%`,
                   yaxis = "y2",
                   text = paste0(plot_data$`Share%`*100, "%"),
+                  textfont = list(color = "#E46C0A",
+                                  size = 15),
                   textposition = "middle top",
-                  textfont = list(color = "#E46C0A"),
                   type = "scatter",
                   mode = "lines+markers+text",
                   name = "Share%",
                   color = I("#E46C0A")) %>% 
         layout(
-          barmode = "group",
+          # barmode = "group",
           showlegend = TRUE,
           legend = list(
             x = 0,
@@ -1261,10 +1310,12 @@ server <- function(input, output, session) {
   
   ##-- for potential growth
   growth_data <- eventReactive(contribution_data(), {
-    if (input$year == 2016)
+    if (input$year == 2016) {
       return(NULL)
-    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(if_chc()))
+    }
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(if_chc())) {
       return(NULL)
+    }
     
     data <- raw_data_final %>% 
       filter(year %in% c(as.numeric(input$year)-1, as.numeric(input$year)), 
@@ -1313,8 +1364,9 @@ server <- function(input, output, session) {
   })
   
   growth_table_data <- reactive({
-    if (is.null(growth_data()) | is.null(contribution_data()))
+    if (is.null(growth_data()) | is.null(contribution_data())) {
       return(NULL)
+    }
     
     ordering <- contribution_data()$ordering
     
@@ -1338,8 +1390,9 @@ server <- function(input, output, session) {
   })
   
   output$growth_current_potential_by_city <- renderDataTable({
-    if (is.null(growth_table_data()))
+    if (is.null(growth_table_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -1386,8 +1439,9 @@ server <- function(input, output, session) {
   })
   
   output$growth_current_potential_by_city_chart <- renderPlotly({
-    if (is.null(growth_data()) | is.null(contribution_data()))
+    if (is.null(growth_data()) | is.null(contribution_data())) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -1402,6 +1456,7 @@ server <- function(input, output, session) {
         add_trace(x = plot_data$city,
                   y = plot_data$city_growth * 100,
                   text = paste0(plot_data$city_growth*100, "%"),
+                  textfont = list(size = 12),
                   textposition = "outside",
                   type = "bar",
                   name = "城市医院",
@@ -1409,6 +1464,7 @@ server <- function(input, output, session) {
         add_trace(x = plot_data$city,
                   y = plot_data$county_growth * 100,
                   text = paste0(plot_data$county_growth*100, "%"),
+                  textfont = list(size = 12),
                   textposition = "outside",
                   type = "bar",
                   name = "县",
@@ -1444,8 +1500,9 @@ server <- function(input, output, session) {
   
   ##-- detail
   detail_data <- eventReactive(input$goButton, {
-    if (is.null(input$channel) | is.null(input$mkt) | is.null(province()) | is.null(input$chc))
+    if (is.null(input$channel) | is.null(input$mkt) | is.null(province()) | is.null(input$chc)) {
       return(NULL)
+    }
     
     input$goButton
     isolate({
@@ -1516,8 +1573,9 @@ server <- function(input, output, session) {
   
   ##-- quadrant
   segmentation <- reactive({
-    if (is.null(detail_data()) | is.null(input$potential_div) | is.null(input$share_div))
+    if (is.null(detail_data()) | is.null(input$potential_div) | is.null(input$share_div)) {
       return(NULL)
+    }
     
     c(input$potential_div, input$share_div)
     isolate({
@@ -1542,8 +1600,9 @@ server <- function(input, output, session) {
   })
   
   output$opportunistic <- renderDataTable({
-    if (is.null(segmentation()))
+    if (is.null(segmentation())) {
       return(NULL)
+    }
     
     # input$refresh
     # isolate({
@@ -1586,8 +1645,9 @@ server <- function(input, output, session) {
   })
   
   output$defend <- renderDataTable({
-    if (is.null(segmentation()))
+    if (is.null(segmentation())) {
       return(NULL)
+    }
     
     # input$refresh
     # isolate({
@@ -1629,9 +1689,10 @@ server <- function(input, output, session) {
     # })
   })
   
-  output$expend <- renderDataTable({
-    if (is.null(segmentation()))
+  output$expand <- renderDataTable({
+    if (is.null(segmentation())) {
       return(NULL)
+    }
     
     # input$refresh
     # isolate({
@@ -1674,8 +1735,9 @@ server <- function(input, output, session) {
   })
   
   output$compete <- renderDataTable({
-    if (is.null(segmentation()))
+    if (is.null(segmentation())) {
       return(NULL)
+    }
     
     # input$refresh
     # isolate({
@@ -1719,8 +1781,9 @@ server <- function(input, output, session) {
   
   ##-- scatter plot
   scatter_plot <- reactive({
-    if (is.null(segmentation()) | is.null(input$potential_div) | is.null(input$share_div))
+    if (is.null(segmentation()) | is.null(input$potential_div) | is.null(input$share_div)) {
       return(NULL)
+    }
     
     plot_data <- segmentation()
     
@@ -1774,8 +1837,9 @@ server <- function(input, output, session) {
   })
   
   output$scatter <- renderPlotly({
-    if (is.null(scatter_plot()))
+    if (is.null(scatter_plot())) {
       return(NULL)
+    }
     
     # input$refresh
     # isolate({
@@ -1785,8 +1849,9 @@ server <- function(input, output, session) {
   
   ##-- layout table
   detail_table_data <- reactive({
-    if (is.null(segmentation()))
+    if (is.null(segmentation())) {
       return(NULL)
+    }
     
     # input$refresh
     # isolate({
@@ -1803,7 +1868,7 @@ server <- function(input, output, session) {
     
     if (input$chc == "no") {
       total_data <- data.table(`City` = "Total",
-                               `Type` = NA,
+                               `Type` = "-",
                                `Terminal#` = sum(table_data$terminal, na.rm = TRUE),
                                `Potential-2020` = sum(table_data$potential_2020, na.rm = TRUE),
                                `CHC Potential-2020` = sum(table_data$chc_2020, na.rm = TRUE),
@@ -1813,7 +1878,7 @@ server <- function(input, output, session) {
                                `2018 Potential Con%` = 1,
                                `2018 Molecule Sales` = sum(table_data$molecule_2018, na.rm = TRUE),
                                `Share%(TTH/Molecule)` = sum(table_data$internal, na.rm = TRUE) / sum(table_data$molecule_2018, na.rm = TRUE),
-                               `Internal` = sum(table_data$internal, na.rm = TRUE),
+                               `2018 TTH` = sum(table_data$internal, na.rm = TRUE),
                                stringsAsFactors = FALSE)
       
       table_data1 <- table_data %>% 
@@ -1828,11 +1893,11 @@ server <- function(input, output, session) {
                "2018 Potential Con%" = "potential_con_2018",
                "2018 Molecule Sales" = "molecule_2018",
                "Share%(TTH/Molecule)" = "share_mol",
-               "Internal" = "internal")
+               "2018 TTH" = "internal")
       
     } else if (input$chc == "yes") {
       total_data <- data.table(`City` = "Total",
-                               `Type` = NA,
+                               `Type` = "-",
                                `Terminal#` = sum(table_data$terminal, na.rm = TRUE),
                                `Potential-2020` = sum(table_data$potential_chc_2020, na.rm = TRUE),
                                `CHC Potential-2020` = sum(table_data$chc_2020, na.rm = TRUE),
@@ -1842,7 +1907,7 @@ server <- function(input, output, session) {
                                `2018 Potential Con%` = 1,
                                `2018 Molecule Sales` = sum(table_data$molecule_2018, na.rm = TRUE),
                                `Share%(TTH/Molecule)` = sum(table_data$internal, na.rm = TRUE) / sum(table_data$molecule_2018, na.rm = TRUE),
-                               `Internal` = sum(table_data$internal, na.rm = TRUE),
+                               `2018 TTH` = sum(table_data$internal, na.rm = TRUE),
                                stringsAsFactors = FALSE)
       
       table_data1 <- table_data %>% 
@@ -1857,7 +1922,7 @@ server <- function(input, output, session) {
                "2018 Potential Con%" = "potential_chc_con_2018",
                "2018 Molecule Sales" = "molecule_2018",
                "Share%(TTH/Molecule)" = "share_mol",
-               "Internal" = "internal")
+               "2018 TTH" = "internal")
       
     } else {
       stop("Detail Table CHC Error.")
@@ -1870,8 +1935,9 @@ server <- function(input, output, session) {
   })
   
   output$detail <- renderDataTable({
-    if (is.null(detail_table_data()))
+    if (is.null(detail_table_data())) {
       return(NULL)
+    }
     
       DT::datatable(
         detail_table_data(),
@@ -1911,7 +1977,7 @@ server <- function(input, output, session) {
           digits = 2
         ) %>% 
         formatRound(
-          c("Potential-2020", "CHC Potential-2020", "Potential-2018", "CHC Potential-2018", "2018 Molecule Sales", "Internal"),
+          c("Potential-2020", "CHC Potential-2020", "Potential-2018", "CHC Potential-2018", "2018 Molecule Sales", "2018 TTH"),
           digits = 0,
           interval = 3
         )

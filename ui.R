@@ -106,19 +106,19 @@ ui <- dashboardPage(
                    width = 12,
                    
                    br(),
-                   h5("1, Current Potential Contribution by City(CU/Mn)"),
+                   h5("1, Current Potential Contribution by City (County Unit / Million)"),
                    br(),
                    div(DT::dataTableOutput("current_potential_by_city"),
                        style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
-                   h5("2, City Rank of Current Potential Contribution(CU/Mn)"),
+                   h5("2, City Rank of Current Potential Contribution (County Unit / Million)"),
                    br(),
                    div(plotlyOutput("city_rank_current_potential", height = "300px"),
                        style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
-                   h5("3, Channel Distribution of Current Potential Contribution by City(CU/Mn)"),
+                   h5("3, Channel Distribution of Current Potential Contribution by City (County Unit / Million)"),
                    br(),
                    div(plotlyOutput("channel_distribution_current_potential_by_city", height = "300px"),
                        style = "font-size:90%; overflow-x:scroll;")
@@ -134,7 +134,7 @@ ui <- dashboardPage(
                    width = 12,
                    
                    br(),
-                   # h3("Current Potential Contribution by City(CU/Mn)"),
+                   # h3("Current Potential Contribution by City (County Unit / Million)"),
                    # br(),
                    div(DT::dataTableOutput("channel_dist_hospital_cnt_by_city"),
                        style = "font-size:90%; overflow-x:scroll;")
@@ -150,13 +150,13 @@ ui <- dashboardPage(
                    width = 12,
                    
                    br(),
-                   h5("1, Total Current Potential and Share by City(CU/Mn)"),
+                   h5("1, Total Current Potential and Share by City (County Unit / Million)"),
                    br(),
                    div(DT::dataTableOutput("total_current_potential_share_by_city"),
                        style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
-                   h5("2, Total Current Potential VS. Pfizer(CU/Mn)"),
+                   h5("2, Total Current Potential VS. Pfizer (County Unit / Million)"),
                    br(),
                    div(plotlyOutput("total_current_potential_share", height = "300px"),
                        style = "font-size:90%; overflow-x:scroll;")
@@ -172,13 +172,13 @@ ui <- dashboardPage(
                    width = 12,
                    
                    br(),
-                   h5("1, City Hospitals Current Potential and Share by City(CU/Mn)"),
+                   h5("1, City Hospitals Current Potential and Share by City (County Unit / Million)"),
                    br(),
                    div(DT::dataTableOutput("city_hospitals_current_potential_share_by_city"),
                        style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
-                   h5("2, City Hospitals Current Potential VS. Pfizer(CU/Mn)"),
+                   h5("2, City Hospitals Current Potential VS. Pfizer (County Unit / Million)"),
                    br(),
                    div(plotlyOutput("city_hospitals_current_potential_share", height = "300px"),
                        style = "font-size:90%; overflow-x:scroll;")
@@ -194,13 +194,13 @@ ui <- dashboardPage(
                    width = 12,
                    
                    br(),
-                   h5("1, County Hospitals Current Potential and Share by City(CU/Mn)"),
+                   h5("1, County Hospitals Current Potential and Share by City (County Unit / Million)"),
                    br(),
                    div(DT::dataTableOutput("County_hospitals_current_potential_share_by_city"),
                        style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
-                   h5("2, County Hospitals Current Potential VS. Pfizer(CU/Mn)"),
+                   h5("2, County Hospitals Current Potential VS. Pfizer (County Unit / Million)"),
                    br(),
                    div(plotlyOutput("county_hospitals_current_potential_share", height = "300px"),
                        style = "font-size:90%; overflow-x:scroll;")
@@ -216,13 +216,13 @@ ui <- dashboardPage(
                    width = 12,
                    
                    br(),
-                   h5("1, Current Potential Growth Between City Hospitals and County Hospitals by City(CU/Mn)"),
+                   h5("1, Current Potential Growth Between City Hospitals and County Hospitals by City (County Unit / Million)"),
                    br(),
                    div(DT::dataTableOutput("growth_current_potential_by_city"),
                        style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
-                   h5("2, Current Potential Growth Between City Hospitals and County Hospitals by City(CU/Mn)"),
+                   h5("2, Current Potential Growth Between City Hospitals and County Hospitals by City (County Unit / Million)"),
                    br(),
                    div(plotlyOutput("growth_current_potential_by_city_chart", height = "300px"),
                        style = "font-size:90%; overflow-x:scroll;")
@@ -248,7 +248,7 @@ ui <- dashboardPage(
                                             align = "center",
                                             div(numericInput("potential_div", label = "2020 Market Potential(%)",
                                                              value = 95, min = 0, max = 100, width = "160px"),
-                                                style = "display:inline-block; font-size:90%;")),
+                                                style = "display:inline-block;")),
                                      box(
                                        title = "Opportunistic",
                                        status = "primary",
@@ -256,8 +256,7 @@ ui <- dashboardPage(
                                        collapsible = FALSE,
                                        width = 6,
                                        style = "background:#DAEEF3; height:270px;",
-                                       div(DT::dataTableOutput("opportunistic"),
-                                           style = "font-size:90%;")
+                                       div(DT::dataTableOutput("opportunistic"))
                                      ),
                                      # column(6,
                                      #        div(DT::dataTableOutput("oppotunity"),
@@ -269,21 +268,19 @@ ui <- dashboardPage(
                                        collapsible = FALSE,
                                        width = 6,
                                        style = "background:#EBF1DE; height:270px;",
-                                       div(DT::dataTableOutput("defend"),
-                                           style = "font-size:90%;")
+                                       div(DT::dataTableOutput("defend"))
                                      ),
                                      # column(6,
                                      #        div(DT::dataTableOutput("defend"),
                                      #            style = "font-size:90%; height:250px;")),
                                      box(
-                                       title = "Expend",
+                                       title = "Expand",
                                        status = "primary",
                                        solidHeader = TRUE,
                                        collapsible = FALSE,
                                        width = 6,
                                        style = "background:#EBF1DE; height:270px;",
-                                       div(DT::dataTableOutput("expend"),
-                                           style = "font-size:90%;")
+                                       div(DT::dataTableOutput("expand"))
                                      ),
                                      # column(6,
                                      #        div(DT::dataTableOutput("expend"),
@@ -295,8 +292,7 @@ ui <- dashboardPage(
                                        collapsible = FALSE,
                                        width = 6,
                                        style = "background:#DAEEF3; height:270px;",
-                                       div(DT::dataTableOutput("compete"),
-                                           style = "font-size:90%;")
+                                       div(DT::dataTableOutput("compete"))
                                      ),
                                      # column(6,
                                      #        div(DT::dataTableOutput("top"),
@@ -313,8 +309,7 @@ ui <- dashboardPage(
                                        style = "text-align:center; margin-top:350px; display:inline-block; height:400px; font-size:90%;"))),
                      column(12,
                             align = "left",
-                            div(plotlyOutput("scatter", height = "700px", width = "95%"),
-                                style = "font-size:90%;"))
+                            div(plotlyOutput("scatter", height = "700px", width = "95%")))
                  )
                ),
                

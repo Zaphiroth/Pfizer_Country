@@ -6,7 +6,7 @@ quadrant <- function(data, seg, chc) {
   
   if (chc == "no") {
     data2 <- data.frame(
-      "key" = c("City#", "Terminal#", "Current Pot Con%", "Current Int Con%", "Share%(TTH/Pot)", "Share%(TTH/Mol)"),
+      "key" = c("City#", "Terminal#", "Current Potential Con%", "Current TTH Con%", "Share% (TTH/Potential)", "Share% (TTH/Mol)"),
       "value" = c(length(unique(data1$city)),
                   sum(data1$terminal, na.rm = TRUE),
                   sum(data1$potential_con_2018, na.rm = TRUE),
@@ -18,13 +18,13 @@ quadrant <- function(data, seg, chc) {
       mutate_all(function(x) {ifelse(is.na(x) | is.nan(x),
                                      0,
                                      x)}) %>% 
-      mutate(value = ifelse(key %in% c("Current Pot Con%", "Current Int Con%", "Share%(TTH/Pot)", "Share%(TTH/Mol)"),
+      mutate(value = ifelse(key %in% c("Current Potential Con%", "Current TTH Con%", "Share% (TTH/Potential)", "Share% (TTH/Mol)"),
                             paste0(round(value*100, 1), "%"),
                             format(round(value), big.interval = 3, big.mark = ",")))
     
   } else if (chc == "yes") {
     data2 <- data.frame(
-      "key" = c("City#", "Terminal#", "Current Pot Con%", "Current Int Con%", "Share%(TTH/Pot)", "Share%(TTH/Mol)"),
+      "key" = c("City#", "Terminal#", "Current Potential Con%", "Current TTH Con%", "Share% (TTH/Potential)", "Share% (TTH/Mol)"),
       "value" = c(length(unique(data1$city)),
                   sum(data1$terminal, na.rm = TRUE),
                   sum(data1$potential_chc_con_2018, na.rm = TRUE),
@@ -36,7 +36,7 @@ quadrant <- function(data, seg, chc) {
       mutate_all(function(x) {ifelse(is.na(x) | is.nan(x),
                                      0,
                                      x)}) %>% 
-      mutate(value = ifelse(key %in% c("Current Pot Con%", "Current Int Con%", "Share%(TTH/Pot)", "Share%(TTH/Mol)"),
+      mutate(value = ifelse(key %in% c("Current Potential Con%", "Current TTH Con%", "Share% (TTH/Potential)", "Share% (TTH/Mol)"),
                             paste0(round(value*100, 1), "%"),
                             format(round(value), big.interval = 3, big.mark = ",")))
     
