@@ -883,15 +883,9 @@ server <- function(input, output, session) {
              market %in% input$mkt,
              province %in% province(),
              channel %in% c("City")) %>% 
-      select(city, value, internal.sales)
-    
-    if (length(data$city) == 0) {
-      data <- bind_rows(data,
-                        data.frame(city = contribution_data()$ordering,
-                                   value = 0,
-                                   internal.sales = 0,
-                                   stringsAsFactors = FALSE))
-    }
+      select(city, value, internal.sales) %>% 
+      right_join(data.frame(city = contribution_data()$ordering), by = "city")
+    data[is.na(data)] <- 0
     
     data1 <- data %>% 
       group_by(city) %>% 
@@ -915,8 +909,6 @@ server <- function(input, output, session) {
     if (is.null(city_data()) | is.null(contribution_data())) {
       return(NULL)
     }
-    
-    ordering <- contribution_data()$ordering
     
     table_data <- city_data() %>% 
       mutate(`City hospitals potential` = format(`City hospitals potential`, big.mark = ","),
@@ -1071,15 +1063,9 @@ server <- function(input, output, session) {
              market %in% input$mkt,
              province %in% province(),
              channel %in% c("County")) %>% 
-      select(city, value, internal.sales)
-    
-    if (length(data$city) != length(contribution_data()$ordering)) {
-      data <- bind_rows(data,
-                        data.frame(city = setdiff(contribution_data()$ordering, data$city),
-                                   value = 0,
-                                   internal.sales = 0,
-                                   stringsAsFactors = FALSE))
-    }
+      select(city, value, internal.sales) %>% 
+      right_join(data.frame(city = contribution_data()$ordering), by = "city")
+    data[is.na(data)] <- 0
     
     data1 <- data %>% 
       group_by(city) %>% 
@@ -1893,12 +1879,12 @@ server <- function(input, output, session) {
             "$(this.api().table().header()).css({'background-color': '#008F91', 'color': '#fff'});",
             "}"
           ),
-          paging = FALSE,
+          paging = TRUE,
           scrollX = TRUE,
-          searching = FALSE,
+          searching = TRUE,
           ordering = FALSE,
-          pageLength = 5,
-          lengthChange = FALSE,
+          pageLength = 10,
+          lengthChange = TRUE,
           bInfo = FALSE
         )
       ) %>% 
