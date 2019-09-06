@@ -114,8 +114,8 @@ server <- function(input, output, session) {
         group_by(城市级别) %>%
         summarise(地级市数量 = sum(地级市数量, na.rm = TRUE),
                        市辖县数量 = sum(市辖县数量, na.rm = TRUE),
-                       县级市数量 = sum(县级市数量, na.rm = TRUE))
-        
+                       县级市数量 = sum(县级市数量, na.rm = TRUE)) %>% 
+        ungroup()
     
       # summary table1
       data3 <- raw_data_final %>%
@@ -129,7 +129,8 @@ server <- function(input, output, session) {
         ungroup() %>%
         summarise(三级医院 = sum(三级医院, na.rm = TRUE),
                       二级医院 = sum(二级医院, na.rm = TRUE),
-                      一级及以下 = sum(一级及以下, na.rm = TRUE))
+                      一级及以下 = sum(一级及以下, na.rm = TRUE)) %>% 
+        ungroup()
       
       # summary table2
       data4 <- raw_data_final %>% 
@@ -142,8 +143,8 @@ server <- function(input, output, session) {
         distinct() %>% 
         ungroup() %>% 
         summarise(`县医院#` = sum(`县医院#`, na.rm = TRUE),
-                  `城市医院#` = sum(`城市医院#`, na.rm = TRUE))
-      
+                  `城市医院#` = sum(`城市医院#`, na.rm = TRUE)) %>% 
+        ungroup()
       
       list(summary_table = all_data_m,
            summary_table1 = data3,
@@ -157,8 +158,11 @@ server <- function(input, output, session) {
     
     input$goButton
     isolate({
-      table_data <- summary_data()$summary_table
-      table_data[table_data == 0] <- "-"
+      table_data <- summary_data()$summary_table %>% 
+        mutate(`地级市数量` = format(`地级市数量`, trim = TRUE, big.mark = ","),
+               `市辖县数量` = format(`市辖县数量`, trim = TRUE, big.mark = ","),
+               `县级市数量` = format(`县级市数量`, trim = TRUE, big.mark = ","))
+      table_data[table_data == "0"] <- "-"
       
       DT::datatable(
         table_data,
@@ -191,10 +195,6 @@ server <- function(input, output, session) {
           target = "row",
           color = styleEqual("Total", "#008F91"),
           fontWeight = styleEqual("Total", "bold")
-        ) %>% 
-        formatRound(
-          c("地级市数量", "市辖县数量","县级市数量"),
-          digits = 0
         )
     })
   })
@@ -206,8 +206,11 @@ server <- function(input, output, session) {
     
     input$goButton
     isolate({
-      table_data <- summary_data()$summary_table1
-      table_data[table_data == 0] <- "-"
+      table_data <- summary_data()$summary_table1 %>% 
+        mutate(`三级医院` = format(`三级医院`, trim = TRUE, big.mark = ","),
+               `二级医院` = format(`二级医院`, trim = TRUE, big.mark = ","),
+               `一级及以下` = format(`一级及以下`, trim = TRUE, big.mark = ","))
+      table_data[table_data == "0"] <- "-"
       
       DT::datatable(
         table_data,
@@ -234,11 +237,7 @@ server <- function(input, output, session) {
           lengthChange = FALSE,
           bInfo = FALSE
         )
-      ) %>% 
-        formatRound(
-          c("三级医院", "二级医院", "一级及以下"),
-          digits = 0
-        )
+      )
     })
   })
   
@@ -249,8 +248,10 @@ server <- function(input, output, session) {
     
     input$goButton
     isolate({
-      table_data <- summary_data()$summary_table2
-      table_data[table_data == 0] <- "-"
+      table_data <- summary_data()$summary_table2 %>% 
+        mutate(`县医院#` = format(`县医院#`, trim = TRUE, big.mark = ","),
+               `城市医院#` = format(`城市医院#`, trim = TRUE, big.mark = ","))
+      table_data[table_data == "0"] <- "-"
       
       DT::datatable(
         table_data,
@@ -280,11 +281,7 @@ server <- function(input, output, session) {
           lengthChange = FALSE,
           bInfo = FALSE
         )
-      ) %>% 
-        formatRound(
-          c("县医院#", "城市医院#"),
-          digits = 0
-        )
+      )
     })
   })
   
@@ -397,25 +394,15 @@ server <- function(input, output, session) {
              `CHC` = round(`CHC` / 1000000, 2),
              `Total` = round(`Total`/1000000, 2)) %>% 
       select("city", "City", "County", "CHC", "Total") %>% 
-      arrange(-`Total`)
+      arrange(-`Total`) %>% 
+      rename("城市医院" = "City",
+             "县" = "County",
+             "社区" = "CHC")
+    data1[is.na(data1)] <- 0
     
     ordering <- data1$city
     
-    data2 <- data1 %>% 
-      melt(id.vars = "city") %>% 
-      dcast(variable~city, value.var = "value") %>% 
-      mutate(variable = as.character(variable),
-             variable = ifelse(variable == "City",
-                               "城市医院",
-                               ifelse(variable == "County",
-                                      "县",
-                                      ifelse(variable == "CHC",
-                                             "社区",
-                                             variable)))) %>% 
-      select("城市" = "variable", ordering)
-    data2[is.na(data2)] <- 0
-    
-    list(data = data2,
+    list(data = data1,
          ordering = ordering)
   })
   
@@ -424,7 +411,11 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    table_data <- contribution_data()$data
+    table_data <- contribution_data()$data %>% 
+      melt(id.vars = "city") %>% 
+      mutate(value = format(value, trim = TRUE, big.mark = ",")) %>% 
+      dcast(variable~city, value.var = "value") %>% 
+      select("城市" = "variable", contribution_data()$ordering)
     table_data[table_data == 0] <- "-"
     
     table_data
@@ -475,11 +466,6 @@ server <- function(input, output, session) {
           target = "row",
           color = styleEqual("Total", "#008F91"),
           fontWeight = styleEqual("Total", "bold")
-        ) %>% 
-        formatRound(
-          columns = TRUE,
-          digits = 2,
-          interval = 3
         )
     })
   })
@@ -491,16 +477,16 @@ server <- function(input, output, session) {
     
     input$goButton
     isolate({
-      plot_data <- contribution_data()$data %>%
-        filter(`城市` == "Total") %>%
-        melt()
-
+      plot_data <- contribution_data()$data %>% 
+        mutate(city = factor(city, levels = contribution_data()$ordering)) %>%
+        arrange(city)
+      
       plot_ly(hoverinfo = "x+y",
               width = max(nrow(plot_data) * 100, 500)) %>%
-        add_trace(x = plot_data$variable,
-                  y = plot_data$value,
+        add_trace(x = plot_data$city,
+                  y = plot_data$Total,
                   type = "bar",
-                  text = plot_data$value,
+                  text = plot_data$Total,
                   textfont = list(size = 15),
                   textposition = "outside",
                   name = "Total",
@@ -527,7 +513,7 @@ server <- function(input, output, session) {
             showticklabels = FALSE,
             title = "",
             mirror = "ticks",
-            range = c(0, max(plot_data$value)*1.2)
+            range = c(0, max(plot_data$Total)*1.2)
           )
         )
     })
@@ -540,9 +526,9 @@ server <- function(input, output, session) {
     
     input$goButton
     isolate({
-      plot_data <- contribution_data()$data %>%
-        melt() %>%
-        dcast(variable~`城市`, value.var = "value") %>%
+      plot_data <- contribution_data()$data %>% 
+        mutate(city = factor(city, levels = contribution_data()$ordering)) %>%
+        arrange(city) %>% 
         mutate(y1 = round(`城市医院` / `Total`, 2),
                y2 = round(`县` / `Total`, 2))
       
@@ -550,10 +536,10 @@ server <- function(input, output, session) {
         plot_data <- plot_data %>% 
           mutate(y3 = round(`社区` / `Total`, 2))
       }
-
+      
       p <- plot_ly(hoverinfo = "name+x+y",
                    width = max(nrow(plot_data) * 100, 500)) %>%
-        add_trace(x = plot_data$variable,
+        add_trace(x = plot_data$city,
                   y = plot_data$y1,
                   type = "bar",
                   text = plot_data$y1,
@@ -562,7 +548,7 @@ server <- function(input, output, session) {
                   textposition = "auto",
                   name = "城市医院",
                   color = I("#9BBB59")) %>%
-        add_trace(x = plot_data$variable,
+        add_trace(x = plot_data$city,
                   y = plot_data$y2,
                   type = "bar",
                   text = plot_data$y2,
@@ -574,7 +560,7 @@ server <- function(input, output, session) {
       
       if ("CHC" %in% if_chc()) {
         p <- p %>% 
-          add_trace(x = plot_data$variable,
+          add_trace(x = plot_data$city,
                     y = plot_data$y3,
                     type = "bar",
                     text = plot_data$y3,
@@ -615,12 +601,10 @@ server <- function(input, output, session) {
   })
   
   ##-- for hospital counts
-  hospital_data <- eventReactive(contribution_data(), {
+  hospital_data <- eventReactive(input$goButton, {
     if (is.null(input$mkt) | is.null(province())) {
       return(NULL)
     }
-    
-    ordering <- contribution_data()$ordering
     
     data <- raw_data_forecast %>% 
       filter(market %in% input$mkt,
@@ -640,25 +624,23 @@ server <- function(input, output, session) {
       mutate(`City` = ifelse(is.na(`City`), 0, `City`),
              `County` = ifelse(is.na(`County`), 0, `County`),
              `Total` = `City` + `County`) %>% 
-      melt(id.vars = "city") %>% 
-      dcast(variable~city, value.var = "value") %>% 
-      mutate(variable = as.character(variable),
-             variable = ifelse(variable == "City",
-                               "城市医院",
-                               ifelse(variable == "County",
-                                      "县",
-                                      variable))) %>% 
-      select("城市" = "variable", ordering)
+      rename("城市医院" = "City",
+             "县" = "County")
+    data1[is.na(data1)] <- 0
     
     data1
   })
   
   hospital_table_data <- reactive({
-    if (is.null(hospital_data())) {
+    if (is.null(hospital_data()) | is.null(contribution_data())) {
       return(NULL)
     }
     
-    table_data <- hospital_data()
+    table_data <- hospital_data() %>% 
+      melt(id.vars = "city") %>% 
+      mutate(value = format(value, trim = TRUE, big.mark = ",")) %>% 
+      dcast(variable~city, value.var = "value") %>% 
+      select("城市" = "variable", contribution_data()$ordering)
     table_data[table_data == 0] <- "-"
     
     table_data
@@ -709,11 +691,6 @@ server <- function(input, output, session) {
           target = "row",
           color = styleEqual("Total", "#008F91"),
           fontWeight = styleEqual("Total", "bold")
-        ) %>% 
-        formatRound(
-          columns = TRUE,
-          digits = 0,
-          interval = 3
         )
     })
   })
@@ -739,16 +716,9 @@ server <- function(input, output, session) {
              share = round(internal.sales/value, 3),
              value = round(value/1000000, 2),
              internal.sales = round(internal.sales/1000000, 2)) %>% 
-      melt(id.vars = "city") %>% 
-      mutate(variable = as.character(variable),
-             variable = ifelse(variable == "value",
-                               "Total potential",
-                               ifelse(variable == "internal.sales",
-                                      "TTH",
-                                      ifelse(variable == "share",
-                                             "Share%",
-                                             variable)))) %>% 
-      dcast(city~variable, value.var = "value")
+      rename("Total potential" = "value",
+             "TTH" = "internal.sales",
+             "Share%" = "share")
     data[is.na(data)] <- 0
     
     data
@@ -759,16 +729,14 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    ordering <- contribution_data()$ordering
-    
     table_data <- share_data() %>% 
-      mutate(`Total potential` = format(`Total potential`, big.interval = 3, big.mark = ","),
-             `TTH` = format(`TTH`, big.interval = 3, big.mark = ","),
+      mutate(`Total potential` = format(`Total potential`, big.mark = ","),
+             `TTH` = format(`TTH`, big.mark = ","),
              `Share%` = paste0(`Share%`*100, "%")) %>% 
       select("city", "Total potential", "TTH", "Share%") %>% 
       melt(id.vars = "city") %>% 
       dcast(variable~city, value.var = "value") %>% 
-      select("城市" = "variable", ordering)
+      select("城市" = "variable", contribution_data()$ordering)
     table_data[table_data == 0 | table_data == "0%"] <- "-"
     
     table_data
@@ -830,10 +798,8 @@ server <- function(input, output, session) {
     
     input$goButton
     isolate({
-      ordering <-  contribution_data()$ordering
-      
       plot_data <- share_data() %>% 
-        mutate(city = factor(city, levels = ordering)) %>%
+        mutate(city = factor(city, levels = contribution_data()$ordering)) %>%
         arrange(city)
       
       plot_ly(hoverinfo = "name+x+y",
@@ -907,12 +873,10 @@ server <- function(input, output, session) {
   })
   
   ##-- for city potential and share
-  city_data <- eventReactive(contribution_data(), {
-    if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(contribution_data())) {
+  city_data <- eventReactive(input$goButton, {
+    if (is.null(input$year) | is.null(input$mkt) | is.null(province())) {
       return(NULL)
     }
-    
-    ordering <- contribution_data()$ordering
     
     data <- raw_data_final %>% 
       filter(year %in% input$year, 
@@ -939,17 +903,9 @@ server <- function(input, output, session) {
       mutate(share = round(internal.sales / value, 3),
              value = round(value/1000000, 2),
              internal.sales = round(internal.sales/1000000, 2)) %>% 
-      melt(id.vars = "city") %>% 
-      mutate(variable = as.character(variable),
-             variable = ifelse(variable == "value",
-                               "City hospitals potential",
-                               ifelse(variable == "internal.sales",
-                                      "TTH",
-                                      ifelse(variable == "share",
-                                             "Share%",
-                                             variable)))) %>% 
-      dcast(city~variable, value.var = "value") %>% 
-      right_join(data.frame(city = ordering, stringsAsFactors = FALSE), by = c("city"))
+      rename("City hospitals potential" = "value",
+             "TTH" = "internal.sales",
+             "Share%" = "share")
     data1[is.na(data1)] <- 0
     
     data1
@@ -963,13 +919,12 @@ server <- function(input, output, session) {
     ordering <- contribution_data()$ordering
     
     table_data <- city_data() %>% 
-      mutate(`City hospitals potential` = format(`City hospitals potential`, big.interval = 3, big.mark = ","),
-             `TTH` = format(`TTH`, big.interval = 3, big.mark = ","),
+      mutate(`City hospitals potential` = format(`City hospitals potential`, big.mark = ","),
+             `TTH` = format(`TTH`, big.mark = ","),
              `Share%` = paste0(`Share%`*100, "%")) %>% 
-      select("city", "City hospitals potential", "TTH", "Share%") %>% 
       melt(id.vars = "city") %>% 
       dcast(variable~city, value.var = "value") %>% 
-      select("城市" = "variable", ordering)
+      select("城市" = "variable", contribution_data()$ordering)
     table_data[table_data == 0 | table_data == "0%"] <- "-"
     
     table_data
@@ -1031,10 +986,8 @@ server <- function(input, output, session) {
     
     input$goButton
     isolate({
-      ordering <- contribution_data()$ordering
-      
       plot_data <- city_data() %>% 
-        mutate(city = factor(city, levels = ordering)) %>% 
+        mutate(city = factor(city, levels = contribution_data()$ordering)) %>% 
         arrange(city)
       
       plot_ly(hoverinfo = "name+x+y",
@@ -1108,12 +1061,10 @@ server <- function(input, output, session) {
   })
   
   ##-- for county potential and share
-  county_data <- eventReactive(contribution_data(), {
+  county_data <- eventReactive(input$goButton, {
     if (is.null(input$year) | is.null(input$mkt) | is.null(province()) | is.null(contribution_data())) {
       return(NULL)
     }
-    
-    ordering <- contribution_data()$ordering
     
     data <- raw_data_final %>% 
       filter(year %in% input$year, 
@@ -1140,17 +1091,9 @@ server <- function(input, output, session) {
       mutate(share = round(internal.sales / value, 3),
              value = round(value/1000000, 2),
              internal.sales = round(internal.sales/1000000, 2)) %>% 
-      melt(id.vars = "city") %>% 
-      mutate(variable = as.character(variable),
-             variable = ifelse(variable == "value",
-                               "County hospitals potential",
-                               ifelse(variable == "internal.sales",
-                                      "TTH",
-                                      ifelse(variable == "share",
-                                             "Share%",
-                                             variable)))) %>% 
-      dcast(city~variable, value.var = "value") %>% 
-      right_join(data.frame(city = ordering, stringsAsFactors = FALSE), by = c("city"))
+      rename("County hospitals potential" = "value",
+             "TTH" = "internal.sales",
+             "Share%" = "share")
     data1[is.na(data1)] <- 0
     
     data1
@@ -1161,16 +1104,14 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    ordering <- contribution_data()$ordering
-    
     table_data <- county_data() %>% 
-      mutate(`County hospitals potential` = format(`County hospitals potential`, big.interval = 3, big.mark = ","),
-             `TTH` = format(`TTH`, big.interval = 3, big.mark = ","),
+      mutate(`County hospitals potential` = format(`County hospitals potential`, big.mark = ","),
+             `TTH` = format(`TTH`, big.mark = ","),
              `Share%` = paste0(`Share%`*100, "%")) %>% 
       select("city", "County hospitals potential", "TTH", "Share%") %>% 
       melt(id.vars = "city") %>% 
       dcast(variable~city, value.var = "value") %>% 
-      select("城市" = "variable", ordering)
+      select("城市" = "variable", contribution_data()$ordering)
     table_data[table_data == 0 | table_data == "0%"] <- "-"
     
     table_data
@@ -1232,10 +1173,8 @@ server <- function(input, output, session) {
     
     input$goButton
     isolate({
-      ordering <- contribution_data()$ordering
-      
       plot_data <- county_data() %>% 
-        mutate(city = factor(city, levels = ordering)) %>% 
+        mutate(city = factor(city, levels = contribution_data()$ordering)) %>% 
         arrange(city)
       
       plot_ly(hoverinfo = "name+x+y",
@@ -1309,7 +1248,7 @@ server <- function(input, output, session) {
   })
   
   ##-- for potential growth
-  growth_data <- eventReactive(contribution_data(), {
+  growth_data <- eventReactive(input$goButton, {
     if (input$year == 2016) {
       return(NULL)
     }
@@ -1368,8 +1307,6 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    ordering <- contribution_data()$ordering
-    
     table_data <- growth_data() %>% 
       mutate_if(is.numeric, function(x) {paste0(x*100, "%")}) %>% 
       melt(id.vars = "city") %>% 
@@ -1383,7 +1320,7 @@ server <- function(input, output, session) {
                                              ifelse(variable == "total_growth",
                                                     "Total",
                                                     variable))))) %>% 
-      select("城市" = "variable", ordering)
+      select("城市" = "variable", contribution_data()$ordering)
     table_data[table_data == 0 | table_data == "0%"] <- "-"
     
     table_data
@@ -1445,10 +1382,8 @@ server <- function(input, output, session) {
     
     input$goButton
     isolate({
-      ordering <- contribution_data()$ordering
-      
       plot_data <- growth_data() %>% 
-        mutate(city = factor(city, levels = ordering)) %>% 
+        mutate(city = factor(city, levels = contribution_data()$ordering)) %>% 
         arrange(city)
       
       plot_ly(hoverinfo = "name+x+y",
@@ -1978,8 +1913,7 @@ server <- function(input, output, session) {
         ) %>% 
         formatRound(
           c("Potential-2020", "CHC Potential-2020", "Potential-2018", "CHC Potential-2018", "2018 Molecule Sales", "2018 TTH"),
-          digits = 0,
-          interval = 3
+          digits = 0
         )
     # })
   })

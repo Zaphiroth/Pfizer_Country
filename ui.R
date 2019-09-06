@@ -106,19 +106,19 @@ ui <- dashboardPage(
                    width = 12,
                    
                    br(),
-                   h5("1, Current Potential Contribution by City (County Unit / Million)"),
+                   h5("1, Current Potential Contribution by City (Tablet/Million)"),
                    br(),
                    div(DT::dataTableOutput("current_potential_by_city"),
                        style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
-                   h5("2, City Rank of Current Potential Contribution (County Unit / Million)"),
+                   h5("2, City Rank of Current Potential Contribution (Tablet/Million)"),
                    br(),
                    div(plotlyOutput("city_rank_current_potential", height = "300px"),
                        style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
-                   h5("3, Channel Distribution of Current Potential Contribution by City (County Unit / Million)"),
+                   h5("3, Channel Distribution of Current Potential Contribution by City (Tablet/Million)"),
                    br(),
                    div(plotlyOutput("channel_distribution_current_potential_by_city", height = "300px"),
                        style = "font-size:90%; overflow-x:scroll;")
@@ -134,7 +134,7 @@ ui <- dashboardPage(
                    width = 12,
                    
                    br(),
-                   # h3("Current Potential Contribution by City (County Unit / Million)"),
+                   # h3("Current Potential Contribution by City (Tablet/Million)"),
                    # br(),
                    div(DT::dataTableOutput("channel_dist_hospital_cnt_by_city"),
                        style = "font-size:90%; overflow-x:scroll;")
@@ -150,13 +150,13 @@ ui <- dashboardPage(
                    width = 12,
                    
                    br(),
-                   h5("1, Total Current Potential and Share by City (County Unit / Million)"),
+                   h5("1, Total Current Potential and Share by City (Tablet/Million)"),
                    br(),
                    div(DT::dataTableOutput("total_current_potential_share_by_city"),
                        style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
-                   h5("2, Total Current Potential VS. Pfizer (County Unit / Million)"),
+                   h5("2, Total Current Potential VS. Pfizer (Tablet/Million)"),
                    br(),
                    div(plotlyOutput("total_current_potential_share", height = "300px"),
                        style = "font-size:90%; overflow-x:scroll;")
@@ -172,13 +172,13 @@ ui <- dashboardPage(
                    width = 12,
                    
                    br(),
-                   h5("1, City Hospitals Current Potential and Share by City (County Unit / Million)"),
+                   h5("1, City Hospitals Current Potential and Share by City (Tablet/Million)"),
                    br(),
                    div(DT::dataTableOutput("city_hospitals_current_potential_share_by_city"),
                        style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
-                   h5("2, City Hospitals Current Potential VS. Pfizer (County Unit / Million)"),
+                   h5("2, City Hospitals Current Potential VS. Pfizer (Tablet/Million)"),
                    br(),
                    div(plotlyOutput("city_hospitals_current_potential_share", height = "300px"),
                        style = "font-size:90%; overflow-x:scroll;")
@@ -194,13 +194,13 @@ ui <- dashboardPage(
                    width = 12,
                    
                    br(),
-                   h5("1, County Hospitals Current Potential and Share by City (County Unit / Million)"),
+                   h5("1, County Hospitals Current Potential and Share by City (Tablet/Million)"),
                    br(),
                    div(DT::dataTableOutput("County_hospitals_current_potential_share_by_city"),
                        style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
-                   h5("2, County Hospitals Current Potential VS. Pfizer (County Unit / Million)"),
+                   h5("2, County Hospitals Current Potential VS. Pfizer (Tablet/Million)"),
                    br(),
                    div(plotlyOutput("county_hospitals_current_potential_share", height = "300px"),
                        style = "font-size:90%; overflow-x:scroll;")
@@ -216,13 +216,13 @@ ui <- dashboardPage(
                    width = 12,
                    
                    br(),
-                   h5("1, Current Potential Growth Between City Hospitals and County Hospitals by City (County Unit / Million)"),
+                   h5("1, Current Potential Growth Between City Hospitals and County Hospitals by City (Tablet/Million)"),
                    br(),
                    div(DT::dataTableOutput("growth_current_potential_by_city"),
                        style = "font-size:90%; overflow-x:scroll;"),
                    
                    br(), br(),
-                   h5("2, Current Potential Growth Between City Hospitals and County Hospitals by City (County Unit / Million)"),
+                   h5("2, Current Potential Growth Between City Hospitals and County Hospitals by City (Tablet/Million)"),
                    br(),
                    div(plotlyOutput("growth_current_potential_by_city_chart", height = "300px"),
                        style = "font-size:90%; overflow-x:scroll;")
