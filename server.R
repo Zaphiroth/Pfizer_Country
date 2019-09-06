@@ -299,7 +299,7 @@ server <- function(input, output, session) {
         add_bars(x = plot_data$variable,
                  y = plot_data$value,
                  type = "bar",
-                 text = plot_data$value,
+                 text = format(plot_data$value, big.mark = ","),
                  textfont = list(size = 15),
                  textposition = "outside",
                  color = I("#93CDDD")) %>% 
@@ -340,7 +340,7 @@ server <- function(input, output, session) {
         add_bars(x = plot_data$variable,
                  y = plot_data$value,
                  type = "bar",
-                 text = plot_data$value,
+                 text = format(plot_data$value, big.mark = ","),
                  textfont = list(size = 15),
                  textposition = "outside",
                  color = I("#93CDDD")) %>% 
@@ -411,12 +411,14 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    table_data <- contribution_data()$data %>% 
+    table_data <- contribution_data()$data
+    table_data[table_data == 0] <- "-"
+    
+    table_data <- table_data %>% 
       melt(id.vars = "city") %>% 
-      mutate(value = format(value, trim = TRUE, big.mark = ",")) %>% 
+      mutate(value = format(value, big.mark = ",")) %>% 
       dcast(variable~city, value.var = "value") %>% 
       select("城市" = "variable", contribution_data()$ordering)
-    table_data[table_data == 0] <- "-"
     
     table_data
   })
@@ -486,7 +488,7 @@ server <- function(input, output, session) {
         add_trace(x = plot_data$city,
                   y = plot_data$Total,
                   type = "bar",
-                  text = plot_data$Total,
+                  text = format(plot_data$Total, big.mark = ","),
                   textfont = list(size = 15),
                   textposition = "outside",
                   name = "Total",
@@ -636,12 +638,14 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    table_data <- hospital_data() %>% 
+    table_data <- hospital_data()
+    table_data[table_data == 0] <- "-"
+    
+    table_data <- table_data %>% 
       melt(id.vars = "city") %>% 
-      mutate(value = format(value, trim = TRUE, big.mark = ",")) %>% 
+      mutate(value = format(value, big.mark = ",")) %>% 
       dcast(variable~city, value.var = "value") %>% 
       select("城市" = "variable", contribution_data()$ordering)
-    table_data[table_data == 0] <- "-"
     
     table_data
   })
@@ -729,7 +733,10 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    table_data <- share_data() %>% 
+    table_data <- share_data()
+    table_data[table_data == 0] <- "-"
+    
+    table_data <- table_data %>% 
       mutate(`Total potential` = format(`Total potential`, big.mark = ","),
              `TTH` = format(`TTH`, big.mark = ","),
              `Share%` = paste0(`Share%`*100, "%")) %>% 
@@ -737,7 +744,6 @@ server <- function(input, output, session) {
       melt(id.vars = "city") %>% 
       dcast(variable~city, value.var = "value") %>% 
       select("城市" = "variable", contribution_data()$ordering)
-    table_data[table_data == 0 | table_data == "0%"] <- "-"
     
     table_data
   })
@@ -806,7 +812,7 @@ server <- function(input, output, session) {
               width = max(nrow(plot_data) * 100, 500)) %>% 
         add_trace(x = plot_data$city,
                   y = plot_data$`Total potential`,
-                  text = plot_data$`Total potential`,
+                  text = format(plot_data$`Total potential`, big.mark = ","),
                   textfont = list(size = 15),
                   textposition = "outside",
                   type = "bar",
@@ -910,14 +916,16 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    table_data <- city_data() %>% 
+    table_data <- city_data()
+    table_data[table_data == 0] <- "-"
+    
+    table_data <- table_data %>% 
       mutate(`City hospitals potential` = format(`City hospitals potential`, big.mark = ","),
              `TTH` = format(`TTH`, big.mark = ","),
              `Share%` = paste0(`Share%`*100, "%")) %>% 
       melt(id.vars = "city") %>% 
       dcast(variable~city, value.var = "value") %>% 
       select("城市" = "variable", contribution_data()$ordering)
-    table_data[table_data == 0 | table_data == "0%"] <- "-"
     
     table_data
   })
@@ -986,7 +994,7 @@ server <- function(input, output, session) {
               width = max(nrow(plot_data) * 100, 500)) %>% 
         add_trace(x = plot_data$city,
                   y = plot_data$`City hospitals potential`,
-                  text = plot_data$`City hospitals potential`,
+                  text = format(plot_data$`City hospitals potential`, big.mark = ","),
                   textfont = list(size = 15),
                   textposition = "outside",
                   type = "bar",
@@ -1090,7 +1098,10 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    table_data <- county_data() %>% 
+    table_data <- county_data()
+    table_data[table_data == 0] <- "-"
+    
+    table_data <- table_data %>% 
       mutate(`County hospitals potential` = format(`County hospitals potential`, big.mark = ","),
              `TTH` = format(`TTH`, big.mark = ","),
              `Share%` = paste0(`Share%`*100, "%")) %>% 
@@ -1098,7 +1109,6 @@ server <- function(input, output, session) {
       melt(id.vars = "city") %>% 
       dcast(variable~city, value.var = "value") %>% 
       select("城市" = "variable", contribution_data()$ordering)
-    table_data[table_data == 0 | table_data == "0%"] <- "-"
     
     table_data
   })
@@ -1167,7 +1177,7 @@ server <- function(input, output, session) {
               width = max(nrow(plot_data) * 100, 500)) %>% 
         add_trace(x = plot_data$city,
                   y = plot_data$`County hospitals potential`,
-                  text = plot_data$`County hospitals potential`,
+                  text = format(plot_data$`County hospitals potential`, big.mark = ","),
                   textfont = list(size = 15),
                   textposition = "outside",
                   type = "bar",
@@ -1294,7 +1304,10 @@ server <- function(input, output, session) {
     }
     
     table_data <- growth_data() %>% 
-      mutate_if(is.numeric, function(x) {paste0(x*100, "%")}) %>% 
+      mutate_if(is.numeric, function(x) {paste0(x*100, "%")})
+    table_data[table_data == "0%"] <- "-"
+    
+    table_data <- table_data %>% 
       melt(id.vars = "city") %>% 
       dcast(variable~city, value.var = "value") %>% 
       mutate(variable = ifelse(variable == "city_growth",
@@ -1307,7 +1320,6 @@ server <- function(input, output, session) {
                                                     "Total",
                                                     variable))))) %>% 
       select("城市" = "variable", contribution_data()$ordering)
-    table_data[table_data == 0 | table_data == "0%"] <- "-"
     
     table_data
   })
@@ -1501,13 +1513,13 @@ server <- function(input, output, session) {
     c(input$potential_div, input$share_div)
     isolate({
       data1 <- `detail_data`() %>% 
-        mutate(segment = ifelse(potential_con_cum > as.numeric(input$potential_div)/100 & share_mol >= input$share_div/100,
+        mutate(segment = ifelse(potential_con_cum > as.numeric(input$potential_div)/100 & share_mol > input$share_div/100,
                                 1,
-                                ifelse(potential_con_cum <= as.numeric(input$potential_div)/100 & share_mol >= input$share_div/100,
+                                ifelse(potential_con_cum <= as.numeric(input$potential_div)/100 & share_mol > input$share_div/100,
                                        2,
-                                       ifelse(potential_con_cum > as.numeric(input$potential_div)/100 & share_mol < input$share_div/100,
+                                       ifelse(potential_con_cum > as.numeric(input$potential_div)/100 & share_mol <= input$share_div/100,
                                               3,
-                                              ifelse(potential_con_cum <= as.numeric(input$potential_div)/100 & share_mol < input$share_div/100,
+                                              ifelse(potential_con_cum <= as.numeric(input$potential_div)/100 & share_mol <= input$share_div/100,
                                                      4,
                                                      0))))) %>% 
         mutate(potential_con_2018 = potential_2018 / sum(potential_2018, na.rm = TRUE),
@@ -1850,7 +1862,6 @@ server <- function(input, output, session) {
     }
     
     table_data2 <- bind_rows(total_data, table_data1)
-    table_data2[table_data2 == 0] <- "-"
     
     table_data2
   })
@@ -1860,48 +1871,53 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-      DT::datatable(
-        detail_table_data(),
-        rownames = FALSE,
-        options = list(
-          columnDefs = list(
-            list(
-              className = 'dt-center',
-              targets = '_all'
-            ),
-            list(
-              className = 'nowrap',
-              targets = '_all'
-            )
+    table_data <- detail_table_data() %>% 
+      mutate(`Terminal#` = format(`Terminal#`, trim = TRUE, big.interval = 3L, big.mark = ","),
+             `Potential-2020` = format(`Potential-2020`, trim = TRUE, big.interval = 3L, big.mark = ","),
+             `CHC Potential-2020` = format(`CHC Potential-2020`, trim = TRUE, big.interval = 3L, big.mark = ","),
+             `Potential-2018` = format(`Potential-2018`, trim = TRUE, big.interval = 3L, big.mark = ","),
+             `CHC Potential-2018` = format(`CHC Potential-2018`, trim = TRUE, big.interval = 3L, big.mark = ","),
+             `2018 Molecule Sales` = format(`2018 Molecule Sales`, trim = TRUE, big.interval = 3L, big.mark = ","),
+             `2018 TTH` = format(`2018 TTH`, trim = TRUE, big.interval = 3L, big.mark = ","))
+    table_data[table_data == "0"] <- "-"
+    
+    DT::datatable(
+      table_data,
+      rownames = FALSE,
+      options = list(
+        columnDefs = list(
+          list(
+            className = 'dt-center',
+            targets = '_all'
           ),
-          initComplete = JS(
-            "function(settings, json) {",
-            "$(this.api().table().header()).css({'background-color': '#008F91', 'color': '#fff'});",
-            "}"
-          ),
-          paging = TRUE,
-          scrollX = TRUE,
-          searching = TRUE,
-          ordering = FALSE,
-          pageLength = 10,
-          lengthChange = TRUE,
-          bInfo = FALSE
-        )
+          list(
+            className = 'nowrap',
+            targets = '_all'
+          )
+        ),
+        initComplete = JS(
+          "function(settings, json) {",
+          "$(this.api().table().header()).css({'background-color': '#008F91', 'color': '#fff'});",
+          "}"
+        ),
+        paging = TRUE,
+        scrollX = TRUE,
+        searching = TRUE,
+        ordering = FALSE,
+        pageLength = 10,
+        lengthChange = TRUE,
+        bInfo = FALSE
+      )
+    ) %>% 
+      formatStyle(
+        "City",
+        target = "row",
+        fontWeight = styleEqual("Total", "bold")
       ) %>% 
-        formatStyle(
-          "City",
-          target = "row",
-          fontWeight = styleEqual("Total", "bold")
-        ) %>% 
-        formatPercentage(
-          c("2020 Potential Con%", "2018 Potential Con%", "Share%(TTH/Molecule)"),
-          digits = 2
-        ) %>% 
-        formatRound(
-          c("Potential-2020", "CHC Potential-2020", "Potential-2018", "CHC Potential-2018", "2018 Molecule Sales", "2018 TTH"),
-          digits = 0
-        )
-    # })
+      formatPercentage(
+        c("2020 Potential Con%", "2018 Potential Con%", "Share%(TTH/Molecule)"),
+        digits = 2
+      )
   })
   
   ##-- download
