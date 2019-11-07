@@ -733,13 +733,16 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    table_data <- share_data()
+    table_data <- share_data() %>% 
+      mutate(`Share%` = `Share%` * 100)
     table_data[table_data == 0] <- "-"
     
     table_data <- table_data %>% 
       mutate(`Total potential` = format(`Total potential`, big.mark = ","),
              `TTH` = format(`TTH`, big.mark = ","),
-             `Share%` = paste0(`Share%`*100, "%")) %>% 
+             `Share%` = ifelse(`Share%` == "-",
+                               `Share%`,
+                               paste0(`Share%`, "%"))) %>% 
       select("city", "Total potential", "TTH", "Share%") %>% 
       melt(id.vars = "city") %>% 
       dcast(variable~city, value.var = "value") %>% 
@@ -916,13 +919,16 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    table_data <- city_data()
+    table_data <- city_data() %>% 
+      mutate(`Share%` = `Share%`*100)
     table_data[table_data == 0] <- "-"
     
     table_data <- table_data %>% 
       mutate(`City hospitals potential` = format(`City hospitals potential`, big.mark = ","),
              `TTH` = format(`TTH`, big.mark = ","),
-             `Share%` = paste0(`Share%`*100, "%")) %>% 
+             `Share%` = ifelse(`Share%` == "-",
+                               `Share%`,
+                               paste0(`Share%`, "%"))) %>% 
       melt(id.vars = "city") %>% 
       dcast(variable~city, value.var = "value") %>% 
       select("城市" = "variable", contribution_data()$ordering)
@@ -1098,13 +1104,16 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    table_data <- county_data()
+    table_data <- county_data() %>% 
+      mutate(`Share%` = `Share%` * 100)
     table_data[table_data == 0] <- "-"
     
     table_data <- table_data %>% 
       mutate(`County hospitals potential` = format(`County hospitals potential`, big.mark = ","),
              `TTH` = format(`TTH`, big.mark = ","),
-             `Share%` = paste0(`Share%`*100, "%")) %>% 
+             `Share%` = ifelse(`Share%` == "-",
+                               `Share%`,
+                               paste0(`Share%`, "%"))) %>% 
       select("city", "County hospitals potential", "TTH", "Share%") %>% 
       melt(id.vars = "city") %>% 
       dcast(variable~city, value.var = "value") %>% 
