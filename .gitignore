@@ -1,17 +1,14 @@
 
+.Rproj.user/
+
 Background/
-
-\.Rproj\.user/
-
-BI_Pfizer\.Rproj
-
-\.RData
-
-\.Rhistory
 
 data/
 
 Delivery/
-.Rproj.user
+
+.RData
+
+.Rhistory
 
 ConvertData.R
